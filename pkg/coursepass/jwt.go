@@ -1,4 +1,4 @@
-package course
+package coursepass
 
 import (
 	"crypto/hmac"

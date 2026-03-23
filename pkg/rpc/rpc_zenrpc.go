@@ -276,7 +276,7 @@ func (CoursesService) SMD() smd.ServiceInfo {
 					{
 						Name:     "req",
 						Type:     smd.Object,
-						TypeName: "ByIdRequest",
+						TypeName: "ByIDRequest",
 						Properties: smd.PropertyList{
 							{
 								Name: "courseId",
@@ -287,10 +287,10 @@ func (CoursesService) SMD() smd.ServiceInfo {
 				},
 				Returns: smd.JSONSchema{
 					Type:     smd.Object,
-					TypeName: "ByIdResponse",
+					TypeName: "ByIDResponse",
 					Properties: smd.PropertyList{
 						{
-							Name: "course",
+							Name: "coursepass",
 							Ref:  "#/definitions/Course",
 							Type: smd.Object,
 						},
@@ -369,7 +369,7 @@ func (s CoursesService) Invoke(ctx context.Context, method string, params json.R
 
 	case RPC.CoursesService.ById:
 		var args = struct {
-			Req ByIdRequest `json:"req"`
+			Req ByIDRequest `json:"req"`
 		}{}
 
 		if zenrpc.IsArray(params) {

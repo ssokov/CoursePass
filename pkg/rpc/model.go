@@ -34,7 +34,7 @@ type MeResponse struct {
 }
 
 type Course struct {
-	CourseId      int     `json:"courseId"`
+	CourseID      int     `json:"courseId"`
 	Title         string  `json:"title"`
 	Description   string  `json:"description"`
 	TimeLimit     *int    `json:"timeLimit"`
@@ -43,16 +43,16 @@ type Course struct {
 	AvailableTo   *string `json:"availableTo"`
 }
 
-type ByIdResponse struct {
-	Course Course `json:"course"`
+type ByIDResponse struct {
+	Course Course `json:"coursepass"`
 }
 
-type ByIdRequest struct {
+type ByIDRequest struct {
 	CourseID int `json:"courseId"`
 }
 
 type CourseSummary struct {
-	CourseId      int     `json:"courseId"`
+	CourseID      int     `json:"courseId"`
 	Title         string  `json:"title"`
 	TimeLimit     *int    `json:"timeLimit"`
 	AvailableType string  `json:"availableType"`

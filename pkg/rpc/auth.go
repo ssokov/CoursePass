@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/mail"
 
-	"courses/pkg/course"
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 
 	"github.com/vmkteam/embedlog"
@@ -15,13 +15,13 @@ type AuthService struct {
 	zenrpc.Service
 	embedlog.Logger
 
-	courseManager *course.CourseManager
+	authManager *coursepass.AuthManager
 }
 
-func NewAuthService(dbc db.DB, logger embedlog.Logger, authCfg course.AuthConfig) *AuthService {
+func NewAuthService(dbc db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig) *AuthService {
 	return &AuthService{
-		courseManager: course.NewCourseManager(dbc, logger, authCfg),
-		Logger:        logger,
+		authManager: coursepass.NewAuthManager(dbc, logger, authCfg),
+		Logger:      logger,
 	}
 }
 
@@ -31,7 +31,7 @@ func (as *AuthService) Register(ctx context.Context, req RegisterRequest) (Regis
 		return RegisterResponse{}, err
 	}
 
-	token, err := as.courseManager.Register(
+	token, err := as.authManager.Register(
 		ctx,
 		req.Login,
 		req.Password,
@@ -53,7 +53,7 @@ func (as *AuthService) Login(ctx context.Context, req LoginRequest) (LoginRespon
 		return LoginResponse{}, err
 	}
 
-	token, err := as.courseManager.Login(ctx, req.Login, req.Password)
+	token, err := as.authManager.Login(ctx, req.Login, req.Password)
 	if err != nil {
 		as.Logger.Error(ctx, "auth login failed", "err", err)
 		return LoginResponse{}, mapRPCError(err)

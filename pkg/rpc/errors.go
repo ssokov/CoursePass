@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"courses/pkg/course"
+	"courses/pkg/coursepass"
 	"errors"
 
 	"github.com/vmkteam/zenrpc/v2"
@@ -13,38 +13,38 @@ const (
 )
 
 func mapRPCError(err error) error {
-	var validationErr course.ValidationError
+	var validationErr coursepass.ValidationError
 	switch {
 	case errors.As(err, &validationErr):
 		return invalidParamsError(validationErr.Field, validationErr.Reason)
-	case errors.Is(err, course.ErrLoginExists):
+	case errors.Is(err, coursepass.ErrLoginExists):
 		return invalidParamsError("login", "must be unique")
-	case errors.Is(err, course.ErrEmailExists):
+	case errors.Is(err, coursepass.ErrEmailExists):
 		return invalidParamsError("email", "must be unique")
-	case errors.Is(err, course.ErrInvalidCredentials):
+	case errors.Is(err, coursepass.ErrInvalidCredentials):
 		return &zenrpc.Error{
 			Code:    errInvalidCredentials,
 			Message: "invalid credentials",
 		}
-	case errors.Is(err, course.ErrInvalidToken):
+	case errors.Is(err, coursepass.ErrInvalidToken):
 		return &zenrpc.Error{
 			Code:    errInvalidToken,
 			Message: "invalid token",
 		}
-	case errors.Is(err, course.ErrStudentNotFound):
+	case errors.Is(err, coursepass.ErrStudentNotFound):
 		return &zenrpc.Error{
 			Code:    zenrpc.InvalidParams,
 			Message: "student not found",
 		}
-	case errors.Is(err, course.ErrCourseNotFound):
+	case errors.Is(err, coursepass.ErrCourseNotFound):
 		return &zenrpc.Error{
 			Code:    zenrpc.InvalidParams,
-			Message: "course not found",
+			Message: "coursepass not found",
 		}
-	case errors.Is(err, course.ErrNoQuestions):
+	case errors.Is(err, coursepass.ErrNoQuestions):
 		return &zenrpc.Error{
 			Code:    zenrpc.InvalidParams,
-			Message: "course has no questions",
+			Message: "coursepass has no questions",
 		}
 	default:
 		return zenrpc.NewError(zenrpc.InternalError, err)

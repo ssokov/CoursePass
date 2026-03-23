@@ -3,7 +3,7 @@ package rpc
 import (
 	"net/http"
 
-	"courses/pkg/course"
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 
 	"github.com/vmkteam/embedlog"
@@ -18,7 +18,7 @@ var (
 
 const (
 	NSAuth   = "auth"
-	NSCourse = "course"
+	NSCourse = "coursepass"
 	NSExam   = "exam"
 )
 
@@ -31,7 +31,7 @@ var allowDebugFn = func() zm.AllowDebugFunc {
 //go:generate go tool zenrpc
 
 // New returns new zenrpc Server.
-func New(dbo db.DB, logger embedlog.Logger, authCfg course.AuthConfig, isDevel bool) *zenrpc.Server {
+func New(dbo db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig, isDevel bool) *zenrpc.Server {
 	rpc := zenrpc.NewServer(zenrpc.Options{
 		ExposeSMD: true,
 		AllowCORS: true,

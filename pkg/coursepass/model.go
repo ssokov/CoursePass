@@ -1,4 +1,4 @@
-package course
+package coursepass
 
 import (
 	"errors"
@@ -12,8 +12,8 @@ var (
 	ErrLoginExists        = errors.New("login already exists")
 	ErrEmailExists        = errors.New("email already exists")
 	ErrStudentNotFound    = errors.New("student not found")
-	ErrCourseNotFound     = errors.New("course not found")
-	ErrNoQuestions        = errors.New("course has no questions")
+	ErrCourseNotFound     = errors.New("coursepass not found")
+	ErrNoQuestions        = errors.New("coursepass has no questions")
 )
 
 const (
@@ -70,7 +70,7 @@ type tokenClaims struct {
 }
 
 type CourseSummary struct {
-	CourseId      int
+	CourseID      int
 	Title         string
 	TimeLimit     *int
 	AvailableType string
@@ -79,7 +79,7 @@ type CourseSummary struct {
 }
 
 type Course struct {
-	CourseId      int
+	CourseID      int
 	Title         string
 	Description   string
 	TimeLimit     *int
@@ -88,25 +88,25 @@ type Course struct {
 	AvailableTo   *string
 }
 
-type ExamQuestionInput struct {
+type ExamQuestionRequest struct {
 	ExamID     int
 	QuestionID int
 	StudentID  int
 }
 
-type SaveAnswerInput struct {
+type ExamSaveAnswerRequest struct {
 	ExamID     int
 	QuestionID int
 	OptionIDs  []int
 	StudentID  int
 }
 
-type SubmitExamInput struct {
+type ExamSubmitRequest struct {
 	ExamID    int
 	StudentID int
 }
 
-type MyExamListInput struct {
+type ExamMyListRequest struct {
 	StudentID int
 	Page      int
 	PageSize  int

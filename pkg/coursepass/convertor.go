@@ -1,4 +1,4 @@
-package course
+package coursepass
 
 import (
 	"strconv"
@@ -56,7 +56,7 @@ func newTokenClaims(studentID int, login string, iat, exp int64) tokenClaims {
 
 func newCourseSummary(course db.Course) CourseSummary {
 	return CourseSummary{
-		CourseId:      course.ID,
+		CourseID:      course.ID,
 		Title:         course.Title,
 		TimeLimit:     course.TimeLimitMinutes,
 		AvailableType: course.AvailabilityType,
@@ -67,7 +67,7 @@ func newCourseSummary(course db.Course) CourseSummary {
 
 func newCourse(course db.Course) Course {
 	return Course{
-		CourseId:      course.ID,
+		CourseID:      course.ID,
 		Title:         course.Title,
 		Description:   course.Description,
 		TimeLimit:     course.TimeLimitMinutes,

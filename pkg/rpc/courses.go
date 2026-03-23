@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"courses/pkg/course"
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 
 	"github.com/vmkteam/embedlog"
@@ -14,12 +14,14 @@ type CoursesService struct {
 	zenrpc.Service
 	embedlog.Logger
 
-	courseManager *course.CourseManager
+	authManager   *coursepass.AuthManager
+	courseManager *coursepass.CourseManager
 }
 
-func NewCoursesService(dbc db.DB, logger embedlog.Logger, authCfg course.AuthConfig) *CoursesService {
+func NewCoursesService(dbc db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig) *CoursesService {
 	return &CoursesService{
-		courseManager: course.NewCourseManager(dbc, logger, authCfg),
+		authManager:   coursepass.NewAuthManager(dbc, logger, authCfg),
+		courseManager: coursepass.NewCourseManager(dbc, logger),
 		Logger:        logger,
 	}
 }
@@ -27,13 +29,13 @@ func NewCoursesService(dbc db.DB, logger embedlog.Logger, authCfg course.AuthCon
 func (cs *CoursesService) Me(ctx context.Context) (MeResponse, error) {
 	studentID, ok := StudentIDFromContext(ctx)
 	if !ok || studentID <= 0 {
-		cs.Logger.Error(ctx, "course me failed: no studentID in context")
-		return MeResponse{}, mapRPCError(course.ErrInvalidToken)
+		cs.Logger.Error(ctx, "coursepass me failed: no studentID in context")
+		return MeResponse{}, mapRPCError(coursepass.ErrInvalidToken)
 	}
 
-	student, err := cs.courseManager.Me(ctx, studentID)
+	student, err := cs.authManager.Me(ctx, studentID)
 	if err != nil {
-		cs.Logger.Error(ctx, "course me failed", "err", err)
+		cs.Logger.Error(ctx, "coursepass me failed", "err", err)
 		return MeResponse{}, mapRPCError(err)
 	}
 
@@ -48,25 +50,25 @@ func (cs *CoursesService) List(ctx context.Context, req ListRequest) (ListRespon
 		req.PageSize = 10
 	}
 
-	courses, err := cs.courseManager.CoursesSummary(ctx, req.Page, req.PageSize)
+	courses, err := cs.courseManager.Summary(ctx, req.Page, req.PageSize)
 	if err != nil {
-		cs.Logger.Error(ctx, "course list failed", "err", err)
+		cs.Logger.Error(ctx, "coursepass list failed", "err", err)
 		return ListResponse{}, mapRPCError(err)
 	}
 
 	return newCoursesSummaryResponse(courses), nil
 }
 
-func (cs *CoursesService) ById(ctx context.Context, req ByIdRequest) (ByIdResponse, error) {
+func (cs *CoursesService) ById(ctx context.Context, req ByIDRequest) (ByIDResponse, error) {
 	if req.CourseID < 1 {
-		return ByIdResponse{}, invalidParamsError("courseId", "must be greater than 0")
+		return ByIDResponse{}, invalidParamsError("courseId", "must be greater than 0")
 	}
 
-	courseObj, err := cs.courseManager.CourseByID(ctx, req.CourseID)
+	courseObj, err := cs.courseManager.ByID(ctx, req.CourseID)
 	if err != nil {
-		cs.Logger.Error(ctx, "course by id failed", "err", err)
-		return ByIdResponse{}, mapRPCError(err)
+		cs.Logger.Error(ctx, "coursepass by id failed", "err", err)
+		return ByIDResponse{}, mapRPCError(err)
 	}
 
-	return newCourseByIdResponse(courseObj), nil
+	return newCourseByIDResponse(courseObj), nil
 }

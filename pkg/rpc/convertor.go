@@ -1,10 +1,10 @@
 package rpc
 
 import (
-	"courses/pkg/course"
+	"courses/pkg/coursepass"
 )
 
-func newRegisterResponse(token course.AuthToken) RegisterResponse {
+func newRegisterResponse(token coursepass.AuthToken) RegisterResponse {
 	return RegisterResponse{
 		AccessToken: token.AccessToken,
 		ExpiresIn:   token.ExpiresIn,
@@ -12,7 +12,7 @@ func newRegisterResponse(token course.AuthToken) RegisterResponse {
 	}
 }
 
-func newLoginResponse(token course.AuthToken) LoginResponse {
+func newLoginResponse(token coursepass.AuthToken) LoginResponse {
 	return LoginResponse{
 		AccessToken: token.AccessToken,
 		ExpiresIn:   token.ExpiresIn,
@@ -20,7 +20,7 @@ func newLoginResponse(token course.AuthToken) LoginResponse {
 	}
 }
 
-func newMeResponse(student *course.Student) MeResponse {
+func newMeResponse(student *coursepass.Student) MeResponse {
 	return MeResponse{
 		StudentID: student.StudentID,
 		Login:     student.Login,
@@ -30,9 +30,9 @@ func newMeResponse(student *course.Student) MeResponse {
 	}
 }
 
-func newCourse(c course.Course) Course {
+func newCourse(c coursepass.Course) Course {
 	return Course{
-		CourseId:      c.CourseId,
+		CourseID:      c.CourseID,
 		Title:         c.Title,
 		Description:   c.Description,
 		TimeLimit:     c.TimeLimit,
@@ -42,15 +42,15 @@ func newCourse(c course.Course) Course {
 	}
 }
 
-func newCourseByIdResponse(course course.Course) ByIdResponse {
-	return ByIdResponse{
+func newCourseByIDResponse(course coursepass.Course) ByIDResponse {
+	return ByIDResponse{
 		Course: newCourse(course),
 	}
 }
 
-func newCourseSummary(course course.CourseSummary) CourseSummary {
+func newCourseSummary(course coursepass.CourseSummary) CourseSummary {
 	return CourseSummary{
-		CourseId:      course.CourseId,
+		CourseID:      course.CourseID,
 		Title:         course.Title,
 		TimeLimit:     course.TimeLimit,
 		AvailableType: course.AvailableType,
@@ -59,7 +59,7 @@ func newCourseSummary(course course.CourseSummary) CourseSummary {
 	}
 }
 
-func newCoursesSummaryResponse(courses []course.CourseSummary) ListResponse {
+func newCoursesSummaryResponse(courses []coursepass.CourseSummary) ListResponse {
 	result := make([]CourseSummary, len(courses))
 	for i, course := range courses {
 		result[i] = newCourseSummary(course)
@@ -69,7 +69,7 @@ func newCoursesSummaryResponse(courses []course.CourseSummary) ListResponse {
 	}
 }
 
-func newExamStartResponse(start course.ExamStart) ExamStartResponse {
+func newExamStartResponse(start coursepass.ExamStart) ExamStartResponse {
 	return ExamStartResponse{
 		ExamID:      start.ExamID,
 		QuestionIDs: start.QuestionIDs,
