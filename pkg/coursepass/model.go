@@ -13,6 +13,9 @@ var (
 	ErrEmailExists        = errors.New("email already exists")
 	ErrStudentNotFound    = errors.New("student not found")
 	ErrCourseNotFound     = errors.New("coursepass not found")
+	ErrExamNotFound       = errors.New("exam not found")
+	ErrExamNotInProgress  = errors.New("exam is not in progress")
+	ErrQuestionNotFound   = errors.New("question not found")
 	ErrNoQuestions        = errors.New("coursepass has no questions")
 )
 
@@ -47,6 +50,13 @@ type AuthConfig struct {
 type ValidationError struct {
 	Field  string
 	Reason string
+}
+
+func newValidationError(field, reason string) error {
+	return ValidationError{
+		Field:  field,
+		Reason: reason,
+	}
 }
 
 func (e ValidationError) Error() string {

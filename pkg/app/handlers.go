@@ -64,7 +64,7 @@ func (a *App) registerAPIHandlers() {
 	srv := rpc.New(a.db, a.Logger, coursepass.AuthConfig{
 		JWTSecret:     a.cfg.Auth.JWTSecret,
 		JWTTTLSeconds: a.cfg.Auth.JWTTTLSeconds,
-	}, a.cfg.Server.IsDevel)
+	}, a.cfg.Server.IsDevel, a.cfg.VFS.WebPath)
 	gen := rpcgen.FromSMD(srv.SMD())
 
 	a.echo.Any("/v1/rpc/", appkit.EchoHandler(appkit.XRequestID(srv)))

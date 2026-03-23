@@ -1,7 +1,9 @@
 package coursepass
 
 import (
+	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"courses/pkg/db"
@@ -92,4 +94,41 @@ func newExamStart(exam db.Exam, questionIDs []int) ExamStart {
 		StartedAt:   exam.CreatedAt.Format(dateTimeLayout),
 		FinishedAt:  formatTimePtr(exam.FinishedAt),
 	}
+}
+
+func newQuestion(question db.Question, mediaWebPath string) Question {
+	return Question{
+		QuestionID:   question.ID,
+		QuestionText: question.QuestionText,
+		QuestionType: question.QuestionType,
+		PhotoURL:     newQuestionPhotoURL(question.PhotoFile, mediaWebPath),
+		Options:      newQuestionOptions(question.Options),
+	}
+}
+
+func newQuestionOptions(options db.QuestionOptions) []QuestionOption {
+	result := make([]QuestionOption, len(options))
+	for i := range options {
+		result[i] = QuestionOption{
+			OptionID:   options[i].OptionID,
+			OptionText: options[i].OptionText,
+		}
+	}
+
+	return result
+}
+
+func newQuestionPhotoURL(photoFile *db.VfsFile, mediaWebPath string) *string {
+	if photoFile == nil || photoFile.Path == "" {
+		return nil
+	}
+
+	basePath := strings.TrimSpace(mediaWebPath)
+	if basePath == "" {
+		url := photoFile.Path
+		return &url
+	}
+
+	url := path.Join(basePath, strings.TrimPrefix(photoFile.Path, "/"))
+	return &url
 }

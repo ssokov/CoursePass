@@ -74,3 +74,20 @@ func newExamStartResponse(start coursepass.ExamStart) ExamStartResponse {
 		FinishedAt:  start.FinishedAt,
 	}
 }
+
+func newQuestionResponse(question coursepass.Question) Question {
+	return Question{
+		QuestionID:   question.QuestionID,
+		QuestionText: question.QuestionText,
+		QuestionType: question.QuestionType,
+		PhotoURL:     question.PhotoURL,
+		Options:      NewQuestionOptions(question.Options),
+	}
+}
+
+func NewQuestionOption(option coursepass.QuestionOption) QuestionOption {
+	return QuestionOption{
+		OptionID:   option.OptionID,
+		OptionText: option.OptionText,
+	}
+}

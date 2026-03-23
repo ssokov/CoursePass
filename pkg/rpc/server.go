@@ -31,7 +31,7 @@ var allowDebugFn = func() zm.AllowDebugFunc {
 //go:generate go tool zenrpc
 
 // New returns new zenrpc Server.
-func New(dbo db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig, isDevel bool) *zenrpc.Server {
+func New(dbo db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig, isDevel bool, mediaWebPath string) *zenrpc.Server {
 	rpc := zenrpc.NewServer(zenrpc.Options{
 		ExposeSMD: true,
 		AllowCORS: true,
@@ -57,7 +57,7 @@ func New(dbo db.DB, logger embedlog.Logger, authCfg coursepass.AuthConfig, isDev
 	rpc.RegisterAll(map[string]zenrpc.Invoker{
 		NSAuth:   NewAuthService(dbo, logger, authCfg),
 		NSCourse: NewCoursesService(dbo, logger, authCfg),
-		NSExam:   NewExamService(dbo, logger, authCfg),
+		NSExam:   NewExamService(dbo, logger, mediaWebPath),
 	})
 
 	return rpc

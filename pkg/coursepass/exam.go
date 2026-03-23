@@ -3,6 +3,7 @@ package coursepass
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"courses/pkg/db"
@@ -12,22 +13,24 @@ import (
 )
 
 type ExamManager struct {
-	db   db.DB
-	repo db.CoursesRepo
+	db           db.DB
+	repo         db.CoursesRepo
+	mediaWebPath string
 	embedlog.Logger
 }
 
-func NewExamManager(dbo db.DB, logger embedlog.Logger) *ExamManager {
+func NewExamManager(dbo db.DB, logger embedlog.Logger, mediaWebPath string) *ExamManager {
 	return &ExamManager{
-		db:     dbo,
-		repo:   db.NewCoursesRepo(dbo),
-		Logger: logger,
+		db:           dbo,
+		repo:         db.NewCoursesRepo(dbo),
+		mediaWebPath: mediaWebPath,
+		Logger:       logger,
 	}
 }
 
 func (em *ExamManager) Start(ctx context.Context, courseID, studentID int) (ExamStart, error) {
 	if courseID <= 0 {
-		return ExamStart{}, invalidCourseIDError()
+		return ExamStart{}, newValidationError("courseId", "must be greater than 0")
 	}
 
 	currentTime := time.Now()
@@ -91,9 +94,34 @@ func (em *ExamManager) Start(ctx context.Context, courseID, studentID int) (Exam
 	return examStart, nil
 }
 
-func invalidCourseIDError() error {
-	return ValidationError{
-		Field:  "courseId",
-		Reason: "must be greater than 0",
+func (em *ExamManager) Question(ctx context.Context, examID, questionID, studentID int) (Question, error) {
+	examData, err := em.repo.OneExam(ctx, &db.ExamSearch{
+		ID:        &examID,
+		StudentID: &studentID,
+	})
+	if err != nil {
+		return Question{}, fmt.Errorf("failed get exam: %w", err)
 	}
+	if examData == nil {
+		return Question{}, ErrExamNotFound
+	}
+	if examData.Status != ExamStatusInProgress {
+		return Question{}, ErrExamNotInProgress
+	}
+	if !slices.Contains(examData.QuestionIDs, questionID) {
+		return Question{}, newValidationError("questionId", "does not belong to exam")
+	}
+
+	questionData, err := em.repo.OneQuestion(ctx, &db.QuestionSearch{
+		ID:       &questionID,
+		CourseID: &examData.CourseID,
+	}, em.repo.FullQuestion())
+	if err != nil {
+		return Question{}, fmt.Errorf("failed get question: %w", err)
+	}
+	if questionData == nil {
+		return Question{}, ErrQuestionNotFound
+	}
+
+	return newQuestion(*questionData, em.mediaWebPath), nil
 }

@@ -13,7 +13,7 @@ import (
 var RPC = struct {
 	AuthService    struct{ Register, Login string }
 	CoursesService struct{ Me, List, ById string }
-	ExamService    struct{ Start string }
+	ExamService    struct{ Start, Question string }
 }{
 	AuthService: struct{ Register, Login string }{
 		Register: "register",
@@ -24,8 +24,9 @@ var RPC = struct {
 		List: "list",
 		ById: "byid",
 	},
-	ExamService: struct{ Start string }{
-		Start: "start",
+	ExamService: struct{ Start, Question string }{
+		Start:    "start",
+		Question: "question",
 	},
 }
 
@@ -437,6 +438,70 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"Question": {
+				Parameters: []smd.JSONSchema{
+					{
+						Name:     "req",
+						Type:     smd.Object,
+						TypeName: "ExamQuestionRequest",
+						Properties: smd.PropertyList{
+							{
+								Name: "examId",
+								Type: smd.Integer,
+							},
+							{
+								Name: "questionId",
+								Type: smd.Integer,
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Object,
+					TypeName: "Question",
+					Properties: smd.PropertyList{
+						{
+							Name: "questionId",
+							Type: smd.Integer,
+						},
+						{
+							Name: "questionText",
+							Type: smd.String,
+						},
+						{
+							Name: "questionType",
+							Type: smd.String,
+						},
+						{
+							Name:     "photoUrl",
+							Optional: true,
+							Type:     smd.String,
+						},
+						{
+							Name: "options",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/QuestionOption",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"QuestionOption": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "optionId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "optionText",
+									Type: smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -465,6 +530,25 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 		}
 
 		resp.Set(s.Start(ctx, args.Req))
+
+	case RPC.ExamService.Question:
+		var args = struct {
+			Req ExamQuestionRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Question(ctx, args.Req))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

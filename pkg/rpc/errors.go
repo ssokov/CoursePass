@@ -41,6 +41,21 @@ func mapRPCError(err error) error {
 			Code:    zenrpc.InvalidParams,
 			Message: "coursepass not found",
 		}
+	case errors.Is(err, coursepass.ErrExamNotFound):
+		return &zenrpc.Error{
+			Code:    zenrpc.InvalidParams,
+			Message: "exam not found",
+		}
+	case errors.Is(err, coursepass.ErrExamNotInProgress):
+		return &zenrpc.Error{
+			Code:    zenrpc.InvalidParams,
+			Message: "exam is not in progress",
+		}
+	case errors.Is(err, coursepass.ErrQuestionNotFound):
+		return &zenrpc.Error{
+			Code:    zenrpc.InvalidParams,
+			Message: "question not found",
+		}
 	case errors.Is(err, coursepass.ErrNoQuestions):
 		return &zenrpc.Error{
 			Code:    zenrpc.InvalidParams,
