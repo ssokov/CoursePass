@@ -14,10 +14,8 @@ import (
 type studentCtx string
 
 const (
-	studentKey        studentCtx = "rpc.student.id"
-	rpcMethodRegister            = "register"
-	rpcMethodLogin               = "login"
-	bearerPrefix                 = "Bearer "
+	studentKey   studentCtx = "rpc.student.id"
+	bearerPrefix string     = "Bearer "
 )
 
 func authMiddleware(authCfg course.AuthConfig, logger embedlog.Logger) zenrpc.MiddlewareFunc {
@@ -29,9 +27,7 @@ func authMiddleware(authCfg course.AuthConfig, logger embedlog.Logger) zenrpc.Mi
 			}
 
 			ns := zenrpc.NamespaceFromContext(ctx)
-			m := strings.ToLower(method)
-
-			if ns == NSCourse && (m == rpcMethodRegister || m == rpcMethodLogin) {
+			if ns == NSAuth {
 				return h(ctx, method, params)
 			}
 

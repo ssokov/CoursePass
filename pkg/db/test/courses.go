@@ -220,6 +220,10 @@ func WithExamRelations(t *testing.T, dbo orm.DB, in *db.Exam) Cleaner {
 		in.Course = &db.Course{}
 	}
 
+	if in.QuestionIDs == nil {
+		in.QuestionIDs = []int{}
+	}
+
 	if in.Student == nil {
 		in.Student = &db.Student{}
 	}
@@ -232,6 +236,15 @@ func WithExamRelations(t *testing.T, dbo orm.DB, in *db.Exam) Cleaner {
 
 	if in.StudentID != 0 {
 		in.Student.ID = in.StudentID
+	}
+
+	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.
+	{
+		for i := range in.QuestionIDs {
+			_, relatedCleaner := Question(t, dbo, &db.Question{ID: in.QuestionIDs[i]}, WithQuestionRelations, WithFakeQuestion)
+
+			cleaners = append(cleaners, relatedCleaner)
+		}
 	}
 
 	// Fetch the relation. It creates if the FKs are provided it fetch from DB by PKs. Else it creates new one.

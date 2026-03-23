@@ -2,72 +2,64 @@ package rpc
 
 import (
 	"context"
+	"net/mail"
+
 	"courses/pkg/course"
 	"courses/pkg/db"
-	"net/mail"
 
 	"github.com/vmkteam/embedlog"
 	"github.com/vmkteam/zenrpc/v2"
 )
 
-type CourseService struct {
+type AuthService struct {
 	zenrpc.Service
 	embedlog.Logger
 
 	courseManager *course.CourseManager
 }
 
-func NewCourseService(dbc db.DB, logger embedlog.Logger, authCfg course.AuthConfig) *CourseService {
-	return &CourseService{
+func NewAuthService(dbc db.DB, logger embedlog.Logger, authCfg course.AuthConfig) *AuthService {
+	return &AuthService{
 		courseManager: course.NewCourseManager(dbc, logger, authCfg),
 		Logger:        logger,
 	}
 }
 
-func (cs *CourseService) Register(ctx context.Context, req RegisterRequest) (RegisterResponse, error) {
+func (as *AuthService) Register(ctx context.Context, req RegisterRequest) (RegisterResponse, error) {
 	if err := validateRegisterRequest(req); err != nil {
-		cs.Logger.Error(ctx, "auth register invalid params", "err", err)
+		as.Logger.Error(ctx, "auth register invalid params", "err", err)
 		return RegisterResponse{}, err
 	}
 
-	token, err := cs.courseManager.Register(ctx, newRegisterInput(req))
+	token, err := as.courseManager.Register(
+		ctx,
+		req.Login,
+		req.Password,
+		req.Email,
+		req.FirstName,
+		req.LastName,
+	)
 	if err != nil {
-		cs.Logger.Error(ctx, "auth register failed", "err", err)
+		as.Logger.Error(ctx, "auth register failed", "err", err)
 		return RegisterResponse{}, mapRPCError(err)
 	}
 
 	return newRegisterResponse(token), nil
 }
 
-func (cs *CourseService) Login(ctx context.Context, req LoginRequest) (LoginResponse, error) {
+func (as *AuthService) Login(ctx context.Context, req LoginRequest) (LoginResponse, error) {
 	if err := validateLoginRequest(req); err != nil {
-		cs.Logger.Error(ctx, "auth login invalid params", "err", err)
+		as.Logger.Error(ctx, "auth login invalid params", "err", err)
 		return LoginResponse{}, err
 	}
 
-	token, err := cs.courseManager.Login(ctx, newLoginInput(req))
+	token, err := as.courseManager.Login(ctx, req.Login, req.Password)
 	if err != nil {
-		cs.Logger.Error(ctx, "auth login failed", "err", err)
+		as.Logger.Error(ctx, "auth login failed", "err", err)
 		return LoginResponse{}, mapRPCError(err)
 	}
 
 	return newLoginResponse(token), nil
-}
-
-func (cs *CourseService) Me(ctx context.Context) (MeResponse, error) {
-	studentID, ok := StudentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
-		cs.Logger.Error(ctx, "auth me failed: no studentID in context")
-		return MeResponse{}, mapRPCError(course.ErrInvalidToken)
-	}
-
-	student, err := cs.courseManager.Me(ctx, studentID)
-	if err != nil {
-		cs.Logger.Error(ctx, "auth me failed", "err", err)
-		return MeResponse{}, mapRPCError(err)
-	}
-
-	return newMeResponse(student), nil
 }
 
 func validateRegisterRequest(req RegisterRequest) error {

@@ -17,7 +17,9 @@ var (
 )
 
 const (
+	NSAuth   = "auth"
 	NSCourse = "course"
+	NSExam   = "exam"
 )
 
 var allowDebugFn = func() zm.AllowDebugFunc {
@@ -53,7 +55,9 @@ func New(dbo db.DB, logger embedlog.Logger, authCfg course.AuthConfig, isDevel b
 
 	// services
 	rpc.RegisterAll(map[string]zenrpc.Invoker{
-		NSCourse: NewCourseService(dbo, logger, authCfg),
+		NSAuth:   NewAuthService(dbo, logger, authCfg),
+		NSCourse: NewCoursesService(dbo, logger, authCfg),
+		NSExam:   NewExamService(dbo, logger, authCfg),
 	})
 
 	return rpc

@@ -145,6 +145,8 @@ type CourseSearch struct {
 	CreatedAt             *time.Time
 	StatusID              *int
 	IDs                   []int
+	AvailableToFrom       *time.Time
+	AvailableFromTo       *time.Time
 	TitleILike            *string
 	DescriptionILike      *string
 	AvailabilityTypeILike *string
@@ -183,6 +185,12 @@ func (cs *CourseSearch) Apply(query *orm.Query) *orm.Query {
 	}
 	if len(cs.IDs) > 0 {
 		Filter{Columns.Course.ID, cs.IDs, SearchTypeArray, false}.Apply(query)
+	}
+	if cs.AvailableToFrom != nil {
+		Filter{Columns.Course.AvailableTo, *cs.AvailableToFrom, SearchTypeGE, false}.Apply(query)
+	}
+	if cs.AvailableFromTo != nil {
+		Filter{Columns.Course.AvailableFrom, *cs.AvailableFromTo, SearchTypeLE, false}.Apply(query)
 	}
 	if cs.TitleILike != nil {
 		Filter{Columns.Course.Title, *cs.TitleILike, SearchTypeILike, false}.Apply(query)

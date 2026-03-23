@@ -16,7 +16,7 @@ var Columns = struct {
 		ID, Title, Description, AvailabilityType, AvailableFrom, AvailableTo, TimeLimitMinutes, CreatedAt, StatusID string
 	}
 	Exam struct {
-		ID, CourseID, StudentID, Answers, TotalQuestions, CorrectAnswers, Status, FinalScore, FinishedAt, CreatedAt string
+		ID, CourseID, StudentID, Answers, TotalQuestions, CorrectAnswers, Status, FinalScore, FinishedAt, CreatedAt, QuestionIDs string
 
 		Course, Student string
 	}
@@ -64,7 +64,7 @@ var Columns = struct {
 		StatusID:         "statusId",
 	},
 	Exam: struct {
-		ID, CourseID, StudentID, Answers, TotalQuestions, CorrectAnswers, Status, FinalScore, FinishedAt, CreatedAt string
+		ID, CourseID, StudentID, Answers, TotalQuestions, CorrectAnswers, Status, FinalScore, FinishedAt, CreatedAt, QuestionIDs string
 
 		Course, Student string
 	}{
@@ -78,6 +78,7 @@ var Columns = struct {
 		FinalScore:     "finalScore",
 		FinishedAt:     "finishedAt",
 		CreatedAt:      "createdAt",
+		QuestionIDs:    "questionIds",
 
 		Course:  "Course",
 		Student: "Student",
@@ -251,6 +252,7 @@ type Exam struct {
 	FinalScore     *float64    `pg:"finalScore"`
 	FinishedAt     *time.Time  `pg:"finishedAt"`
 	CreatedAt      time.Time   `pg:"createdAt,use_zero"`
+	QuestionIDs    []int       `pg:"questionIds,array,use_zero"`
 
 	Course  *Course  `pg:"fk:courseId,rel:has-one"`
 	Student *Student `pg:"fk:studentId,rel:has-one"`

@@ -1,6 +1,6 @@
 ﻿-- =============================================================================
--- Diagram Name: courses
--- Created on: 20.03.2026 19:20:08
+-- Diagram Name: apisrv
+-- Created on: 23.03.2026 20:00:16
 -- Diagram Version: 
 -- =============================================================================
 
@@ -137,6 +137,7 @@ CREATE TABLE "exams" (
 	"courseId" int4 NOT NULL,
 	"studentId" int4 NOT NULL,
 	"answers" jsonb NOT NULL DEFAULT '[]'::jsonb,
+	"questionIds" int4[],
 	"totalQuestions" int4,
 	"correctAnswers" int4,
 	"status" varchar(255) NOT NULL DEFAULT 'in_progress',

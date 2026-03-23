@@ -11,16 +11,25 @@ import (
 )
 
 var RPC = struct {
-	CourseService struct{ Register, Login, Me string }
+	AuthService    struct{ Register, Login string }
+	CoursesService struct{ Me, List, ById string }
+	ExamService    struct{ Start string }
 }{
-	CourseService: struct{ Register, Login, Me string }{
+	AuthService: struct{ Register, Login string }{
 		Register: "register",
 		Login:    "login",
-		Me:       "me",
+	},
+	CoursesService: struct{ Me, List, ById string }{
+		Me:   "me",
+		List: "list",
+		ById: "byid",
+	},
+	ExamService: struct{ Start string }{
+		Start: "start",
 	},
 }
 
-func (CourseService) SMD() smd.ServiceInfo {
+func (AuthService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
 		Methods: map[string]smd.Service{
 			"Register": {
@@ -109,6 +118,64 @@ func (CourseService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s AuthService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.AuthService.Register:
+		var args = struct {
+			Req RegisterRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Register(ctx, args.Req))
+
+	case RPC.AuthService.Login:
+		var args = struct {
+			Req LoginRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Login(ctx, args.Req))
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
+}
+
+func (CoursesService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Methods: map[string]smd.Service{
 			"Me": {
 				Parameters: []smd.JSONSchema{},
 				Returns: smd.JSONSchema{
@@ -138,56 +205,266 @@ func (CourseService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
+			"List": {
+				Parameters: []smd.JSONSchema{
+					{
+						Name:     "req",
+						Type:     smd.Object,
+						TypeName: "ListRequest",
+						Properties: smd.PropertyList{
+							{
+								Name: "page",
+								Type: smd.Integer,
+							},
+							{
+								Name: "pageSize",
+								Type: smd.Integer,
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Object,
+					TypeName: "ListResponse",
+					Properties: smd.PropertyList{
+						{
+							Name: "courses",
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/CourseSummary",
+							},
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"CourseSummary": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "courseId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "title",
+									Type: smd.String,
+								},
+								{
+									Name:     "timeLimit",
+									Optional: true,
+									Type:     smd.Integer,
+								},
+								{
+									Name: "availableType",
+									Type: smd.String,
+								},
+								{
+									Name:     "availableFrom",
+									Optional: true,
+									Type:     smd.String,
+								},
+								{
+									Name:     "availableTo",
+									Optional: true,
+									Type:     smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
+			"ById": {
+				Parameters: []smd.JSONSchema{
+					{
+						Name:     "req",
+						Type:     smd.Object,
+						TypeName: "ByIdRequest",
+						Properties: smd.PropertyList{
+							{
+								Name: "courseId",
+								Type: smd.Integer,
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Object,
+					TypeName: "ByIdResponse",
+					Properties: smd.PropertyList{
+						{
+							Name: "course",
+							Ref:  "#/definitions/Course",
+							Type: smd.Object,
+						},
+					},
+					Definitions: map[string]smd.Definition{
+						"Course": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "courseId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "title",
+									Type: smd.String,
+								},
+								{
+									Name: "description",
+									Type: smd.String,
+								},
+								{
+									Name:     "timeLimit",
+									Optional: true,
+									Type:     smd.Integer,
+								},
+								{
+									Name: "availableType",
+									Type: smd.String,
+								},
+								{
+									Name:     "availableFrom",
+									Optional: true,
+									Type:     smd.String,
+								},
+								{
+									Name:     "availableTo",
+									Optional: true,
+									Type:     smd.String,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 // Invoke is as generated code from zenrpc cmd
-func (s CourseService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+func (s CoursesService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
 	resp := zenrpc.Response{}
 	var err error
 
 	switch method {
-	case RPC.CourseService.Register:
-		var args = struct {
-			Req RegisterRequest `json:"req"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.Register(ctx, args.Req))
-
-	case RPC.CourseService.Login:
-		var args = struct {
-			Req LoginRequest `json:"req"`
-		}{}
-
-		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		if len(params) > 0 {
-			if err := json.Unmarshal(params, &args); err != nil {
-				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
-			}
-		}
-
-		resp.Set(s.Login(ctx, args.Req))
-
-	case RPC.CourseService.Me:
+	case RPC.CoursesService.Me:
 		resp.Set(s.Me(ctx))
+
+	case RPC.CoursesService.List:
+		var args = struct {
+			Req ListRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.List(ctx, args.Req))
+
+	case RPC.CoursesService.ById:
+		var args = struct {
+			Req ByIdRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.ById(ctx, args.Req))
+
+	default:
+		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
+	}
+
+	return resp
+}
+
+func (ExamService) SMD() smd.ServiceInfo {
+	return smd.ServiceInfo{
+		Methods: map[string]smd.Service{
+			"Start": {
+				Parameters: []smd.JSONSchema{
+					{
+						Name:     "req",
+						Type:     smd.Object,
+						TypeName: "ExamStartRequest",
+						Properties: smd.PropertyList{
+							{
+								Name: "courseId",
+								Type: smd.Integer,
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Object,
+					TypeName: "ExamStartResponse",
+					Properties: smd.PropertyList{
+						{
+							Name: "examId",
+							Type: smd.Integer,
+						},
+						{
+							Name: "questionIds",
+							Type: smd.Array,
+							Items: map[string]string{
+								"type": smd.Integer,
+							},
+						},
+						{
+							Name: "startedAt",
+							Type: smd.String,
+						},
+						{
+							Name:     "finishedAt",
+							Optional: true,
+							Type:     smd.String,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+// Invoke is as generated code from zenrpc cmd
+func (s ExamService) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	resp := zenrpc.Response{}
+	var err error
+
+	switch method {
+	case RPC.ExamService.Start:
+		var args = struct {
+			Req ExamStartRequest `json:"req"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"req"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.Start(ctx, args.Req))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
