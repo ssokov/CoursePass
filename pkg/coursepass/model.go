@@ -16,6 +16,7 @@ var (
 	ErrExamNotFound       = errors.New("exam not found")
 	ErrExamNotInProgress  = errors.New("exam is not in progress")
 	ErrQuestionNotFound   = errors.New("question not found")
+	ErrQuestionNotInExam  = errors.New("question does not belong to exam")
 	ErrNoQuestions        = errors.New("coursepass has no questions")
 )
 
@@ -50,13 +51,6 @@ type AuthConfig struct {
 type ValidationError struct {
 	Field  string
 	Reason string
-}
-
-func newValidationError(field, reason string) error {
-	return ValidationError{
-		Field:  field,
-		Reason: reason,
-	}
 }
 
 func (e ValidationError) Error() string {

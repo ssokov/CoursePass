@@ -29,10 +29,6 @@ func NewExamManager(dbo db.DB, logger embedlog.Logger, mediaWebPath string) *Exa
 }
 
 func (em *ExamManager) Start(ctx context.Context, courseID, studentID int) (ExamStart, error) {
-	if courseID <= 0 {
-		return ExamStart{}, newValidationError("courseId", "must be greater than 0")
-	}
-
 	currentTime := time.Now()
 	var examStart ExamStart
 
@@ -109,7 +105,7 @@ func (em *ExamManager) Question(ctx context.Context, examID, questionID, student
 		return Question{}, ErrExamNotInProgress
 	}
 	if !slices.Contains(examData.QuestionIDs, questionID) {
-		return Question{}, newValidationError("questionId", "does not belong to exam")
+		return Question{}, ErrQuestionNotInExam
 	}
 
 	questionData, err := em.repo.OneQuestion(ctx, &db.QuestionSearch{

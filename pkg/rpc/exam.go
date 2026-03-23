@@ -25,6 +25,10 @@ func NewExamService(dbc db.DB, logger embedlog.Logger, mediaWebPath string) *Exa
 }
 
 func (es *ExamService) Start(ctx context.Context, req ExamStartRequest) (ExamStartResponse, error) {
+	if req.CourseID < 1 {
+		return ExamStartResponse{}, invalidParamsError("courseId", "must be greater than 0")
+	}
+
 	studentID, ok := StudentIDFromContext(ctx)
 	if !ok || studentID <= 0 {
 		es.Logger.Error(ctx, "exam start failed: no studentID in context")
