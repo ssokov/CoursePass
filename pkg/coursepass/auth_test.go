@@ -12,33 +12,89 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestAuthManager_Register_Success(t *testing.T) {
-	// Arrange
+type authFixture struct {
+	dbo     db.DB
+	manager *AuthManager
+	repo    db.CoursesRepo
+	authCfg AuthConfig
+}
+
+func newAuthFixture(t *testing.T) authFixture {
+	t.Helper()
+
 	dbo, logger := dbtest.Setup(t)
 	authCfg := AuthConfig{
 		JWTSecret:     "test-secret",
 		JWTTTLSeconds: 3600,
 	}
-	manager := NewAuthManager(dbo, logger, authCfg)
-	repo := db.NewCoursesRepo(dbo)
+
+	return authFixture{
+		dbo:     dbo,
+		manager: NewAuthManager(dbo, logger, authCfg),
+		repo:    db.NewCoursesRepo(dbo),
+		authCfg: authCfg,
+	}
+}
+
+func hashPassword(t *testing.T, password string) string {
+	t.Helper()
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	require.NoError(t, err)
+
+	return string(hash)
+}
+
+func createStudent(
+	t *testing.T,
+	dbo db.DB,
+	login, email, passwordHash string,
+) (*db.Student, func()) {
+	t.Helper()
+
+	student, cleanup := dbtest.Student(
+		t,
+		dbo.DB,
+		&db.Student{
+			Login:        login,
+			Email:        email,
+			PasswordHash: passwordHash,
+			StatusID:     1,
+		},
+		dbtest.WithFakeStudent,
+	)
+
+	return student, cleanup
+}
+
+func TestAuthManager_Register_Success(t *testing.T) {
+	// Arrange
+	fx := newAuthFixture(t)
 
 	login := "student_" + dbtest.NextStringID()
 	email := "student_" + dbtest.NextStringID() + "@mail.test"
 
 	// Act
-	token, err := manager.Register(t.Context(), login, "password123", email, "John", "Doe")
+	token, err := fx.manager.Register(
+		t.Context(),
+		login,
+		"password123",
+		email,
+		"John",
+		"Doe",
+	)
 
 	// Assert
 	require.NoError(t, err)
 	assert.NotEmpty(t, token.AccessToken)
-	assert.Equal(t, authCfg.JWTTTLSeconds, token.ExpiresIn)
+	assert.Equal(t, fx.authCfg.JWTTTLSeconds, token.ExpiresIn)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(authCfg, token.AccessToken)
+	studentID, err := ValidateJWT(fx.authCfg, token.AccessToken)
 	require.NoError(t, err)
 	assert.Positive(t, studentID)
 
-	student, err := repo.OneStudent(t.Context(), &db.StudentSearch{ID: &studentID})
+	student, err := fx.repo.OneStudent(t.Context(), &db.StudentSearch{ID: &studentID})
 	require.NoError(t, err)
 	require.NotNil(t, student)
 	assert.Equal(t, login, student.Login)
@@ -49,25 +105,22 @@ func TestAuthManager_Register_Success(t *testing.T) {
 
 func TestAuthManager_Register_DuplicateLogin(t *testing.T) {
 	// Arrange
-	dbo, logger := dbtest.Setup(t)
-	manager := NewAuthManager(dbo, logger, AuthConfig{JWTSecret: "test-secret"})
+	fx := newAuthFixture(t)
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-	require.NoError(t, err)
+	passwordHash := hashPassword(t, "password123")
 
 	existingLogin := "student_" + dbtest.NextStringID()
-	_, cleanup := dbtest.Student(t, dbo.DB, &db.Student{
-		Login:        existingLogin,
-		PasswordHash: string(passwordHash),
-		FirstName:    "John",
-		LastName:     "Doe",
-		Email:        "student_" + dbtest.NextStringID() + "@mail.test",
-		StatusID:     1,
-	})
+	_, cleanup := createStudent(
+		t,
+		fx.dbo,
+		existingLogin,
+		"student_"+dbtest.NextStringID()+"@mail.test",
+		passwordHash,
+	)
 	defer cleanup()
 
 	// Act
-	_, err = manager.Register(
+	_, err := fx.manager.Register(
 		t.Context(),
 		existingLogin,
 		"password123",
@@ -83,25 +136,22 @@ func TestAuthManager_Register_DuplicateLogin(t *testing.T) {
 
 func TestAuthManager_Register_DuplicateEmail(t *testing.T) {
 	// Arrange
-	dbo, logger := dbtest.Setup(t)
-	manager := NewAuthManager(dbo, logger, AuthConfig{JWTSecret: "test-secret"})
+	fx := newAuthFixture(t)
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-	require.NoError(t, err)
+	passwordHash := hashPassword(t, "password123")
 
 	existingEmail := "student_" + dbtest.NextStringID() + "@mail.test"
-	_, cleanup := dbtest.Student(t, dbo.DB, &db.Student{
-		Login:        "student_" + dbtest.NextStringID(),
-		PasswordHash: string(passwordHash),
-		FirstName:    "John",
-		LastName:     "Doe",
-		Email:        existingEmail,
-		StatusID:     1,
-	})
+	_, cleanup := createStudent(
+		t,
+		fx.dbo,
+		"student_"+dbtest.NextStringID(),
+		existingEmail,
+		passwordHash,
+	)
 	defer cleanup()
 
 	// Act
-	_, err = manager.Register(
+	_, err := fx.manager.Register(
 		t.Context(),
 		"student_"+dbtest.NextStringID(),
 		"password123",
@@ -117,58 +167,51 @@ func TestAuthManager_Register_DuplicateEmail(t *testing.T) {
 
 func TestAuthManager_Login_Success(t *testing.T) {
 	// Arrange
-	dbo, logger := dbtest.Setup(t)
-	authCfg := AuthConfig{JWTSecret: "test-secret"}
-	manager := NewAuthManager(dbo, logger, authCfg)
+	fx := newAuthFixture(t)
 
 	rawPassword := "password123"
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
-	require.NoError(t, err)
+	passwordHash := hashPassword(t, rawPassword)
 
-	student, cleanup := dbtest.Student(t, dbo.DB, &db.Student{
-		Login:        "student_" + dbtest.NextStringID(),
-		PasswordHash: string(passwordHash),
-		FirstName:    "John",
-		LastName:     "Doe",
-		Email:        "student_" + dbtest.NextStringID() + "@mail.test",
-		StatusID:     1,
-	})
+	student, cleanup := createStudent(
+		t,
+		fx.dbo,
+		"student_"+dbtest.NextStringID(),
+		"student_"+dbtest.NextStringID()+"@mail.test",
+		passwordHash,
+	)
 	defer cleanup()
 
 	// Act
-	token, err := manager.Login(t.Context(), student.Login, rawPassword)
+	token, err := fx.manager.Login(t.Context(), student.Login, rawPassword)
 
 	// Assert
 	require.NoError(t, err)
 	assert.NotEmpty(t, token.AccessToken)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(authCfg, token.AccessToken)
+	studentID, err := ValidateJWT(fx.authCfg, token.AccessToken)
 	require.NoError(t, err)
 	assert.Equal(t, student.ID, studentID)
 }
 
 func TestAuthManager_Login_InvalidCredentials(t *testing.T) {
 	// Arrange
-	dbo, logger := dbtest.Setup(t)
-	manager := NewAuthManager(dbo, logger, AuthConfig{JWTSecret: "test-secret"})
+	fx := newAuthFixture(t)
 
 	rawPassword := "password123"
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
-	require.NoError(t, err)
+	passwordHash := hashPassword(t, rawPassword)
 
-	student, cleanup := dbtest.Student(t, dbo.DB, &db.Student{
-		Login:        "student_" + dbtest.NextStringID(),
-		PasswordHash: string(passwordHash),
-		FirstName:    "John",
-		LastName:     "Doe",
-		Email:        "student_" + dbtest.NextStringID() + "@mail.test",
-		StatusID:     1,
-	})
+	student, cleanup := createStudent(
+		t,
+		fx.dbo,
+		"student_"+dbtest.NextStringID(),
+		"student_"+dbtest.NextStringID()+"@mail.test",
+		passwordHash,
+	)
 	defer cleanup()
 
 	// Act
-	_, err = manager.Login(t.Context(), student.Login, "wrong-password")
+	_, err := fx.manager.Login(t.Context(), student.Login, "wrong-password")
 
 	// Assert
 	require.Error(t, err)
