@@ -121,3 +121,78 @@ func (em *ExamManager) Question(ctx context.Context, examID, questionID, student
 
 	return newQuestion(*questionData, em.mediaWebPath), nil
 }
+
+func (em *ExamManager) SaveAnswer(ctx context.Context, studentID, examID, questionID int, optionIDs []int) error {
+	err := em.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
+		txRepo := em.repo.WithTransaction(tx)
+		exam, err := txRepo.OneExam(ctx, &db.ExamSearch{
+			ID:        &examID,
+			StudentID: &studentID,
+		})
+		if err != nil {
+			return fmt.Errorf("failed get exam: %w", err)
+		}
+		if exam == nil {
+			return ErrExamNotFound
+		}
+
+		if exam.Status != ExamStatusInProgress {
+			return ErrExamNotInProgress
+		}
+
+		// The question must belong to the exam snapshot captured at Start.
+		if !slices.Contains(exam.QuestionIDs, questionID) {
+			return ErrQuestionNotInExam
+		}
+
+		// A question can be answered only once.
+		for _, ans := range exam.Answers {
+			if ans.QuestionID == questionID {
+				return ErrAnswerAlreadySaved
+			}
+		}
+
+		question, err := txRepo.OneQuestion(ctx, &db.QuestionSearch{
+			ID:       &questionID,
+			CourseID: &exam.CourseID,
+		})
+
+		if err != nil {
+			return fmt.Errorf("failed get question: %w", err)
+		}
+		if question == nil {
+			return ErrQuestionNotFound
+		}
+
+		// Validate that every optionID belongs to this question.
+		allowed := make(map[int]struct{}, len(question.Options))
+		for _, opt := range question.Options {
+			allowed[opt.OptionID] = struct{}{}
+		}
+		for _, id := range optionIDs {
+			if _, ok := allowed[id]; !ok {
+				return ErrInvalidOptionIDs
+			}
+		}
+
+		if len(optionIDs) > 1 && question.QuestionType == QuestionTypeSingleChoice {
+			return ErrInvalidOptionIDs
+		}
+
+		exam.Answers = append(exam.Answers, db.ExamAnswer{QuestionID: questionID, OptionIDs: optionIDs})
+		flag, err := txRepo.UpdateExam(ctx, exam, db.WithColumns(db.Columns.Exam.Answers))
+
+		if err != nil {
+			return fmt.Errorf("failed update exam: %w", err)
+		}
+		if !flag {
+			return ErrExamNotUpdated
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed save answer: %w", err)
+	}
+	return nil
+}

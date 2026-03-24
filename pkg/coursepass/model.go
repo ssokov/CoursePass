@@ -18,6 +18,9 @@ var (
 	ErrQuestionNotFound   = errors.New("question not found")
 	ErrQuestionNotInExam  = errors.New("question does not belong to exam")
 	ErrNoQuestions        = errors.New("coursepass has no questions")
+	ErrAnswerAlreadySaved = errors.New("answer already saved")
+	ErrInvalidOptionIDs   = errors.New("invalid option ids")
+	ErrExamNotUpdated     = errors.New("exam not updated")
 )
 
 const (
@@ -27,6 +30,9 @@ const (
 	jwtTyp                 = "JWT"
 
 	ExamStatusInProgress = "in_progress"
+
+	QuestionTypeSingleChoice   = "single_choice"
+	QuestionTypeMultipleChoice = "multiple_choice"
 )
 
 type AuthToken struct {

@@ -66,3 +66,28 @@ func (es *ExamService) Question(ctx context.Context, req ExamQuestionRequest) (Q
 
 	return newQuestionResponse(question), nil
 }
+
+func (es *ExamService) SaveAnswer(ctx context.Context, req SaveAnswerRequest) error {
+	if req.ExamID < 1 {
+		return invalidParamsError("examId", "must be greater than 0")
+	}
+	if req.QuestionID < 1 {
+		return invalidParamsError("questionId", "must be greater than 0")
+	}
+	if len(req.OptionIDs) < 1 {
+		return invalidParamsError("optionIds", "size must be bigger than 0")
+	}
+	studentID, ok := StudentIDFromContext(ctx)
+	if !ok || studentID <= 0 {
+		es.Logger.Error(ctx, "exam save failed: no studentID in context")
+		return mapRPCError(coursepass.ErrInvalidToken)
+	}
+
+	err := es.examManager.SaveAnswer(ctx, studentID, req.ExamID, req.QuestionID, req.OptionIDs)
+	if err != nil {
+		es.Logger.Error(ctx, "exam save failed", "err", err)
+		return mapRPCError(err)
+	}
+
+	return nil
+}

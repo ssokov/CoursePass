@@ -132,3 +132,9 @@ type ExamSummary struct {
 type ExamMyListResponse struct {
 	Exams []ExamSummary `json:"exams"`
 }
+
+type SaveAnswerRequest struct {
+	ExamID     int   `json:"examId"`
+	QuestionID int   `json:"questionId"`
+	OptionIDs  []int `json:"optionIds"`
+}
