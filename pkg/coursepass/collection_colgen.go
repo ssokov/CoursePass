@@ -6,3 +6,7 @@ import (
 )
 
 func newCourseSummaries(in []db.Course) []CourseSummary { return Map(in, newCourseSummary) }
+
+func newExamSummaries(in []db.Exam) []ExamSummary { return Map(in, newExamSummary) }
+
+func newQuestionOptions(in []db.QuestionOption) []QuestionOption { return Map(in, newQuestionOption) }

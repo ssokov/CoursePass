@@ -106,16 +106,11 @@ func newQuestion(question db.Question, mediaWebPath string) Question {
 	}
 }
 
-func newQuestionOptions(options db.QuestionOptions) []QuestionOption {
-	result := make([]QuestionOption, len(options))
-	for i := range options {
-		result[i] = QuestionOption{
-			OptionID:   options[i].OptionID,
-			OptionText: options[i].OptionText,
-		}
+func newQuestionOption(option db.QuestionOption) QuestionOption {
+	return QuestionOption{
+		OptionID:   option.OptionID,
+		OptionText: option.OptionText,
 	}
-
-	return result
 }
 
 func newQuestionPhotoURL(photoFile *db.VfsFile, mediaWebPath string) *string {
@@ -151,8 +146,4 @@ func newExamSummary(exam db.Exam) ExamSummary {
 		FinalScore: finalScore,
 		FinishedAt: finishedAt,
 	}
-}
-
-func newExamSummaries(exams []db.Exam) []ExamSummary {
-	return Map(exams, newExamSummary)
 }

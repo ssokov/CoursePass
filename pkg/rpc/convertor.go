@@ -112,10 +112,6 @@ func newExamSummary(summary coursepass.ExamSummary) ExamSummary {
 	}
 }
 
-func newExamSummaries(summaries []coursepass.ExamSummary) []ExamSummary {
-	return Map(summaries, newExamSummary)
-}
-
 func newExamMyListResponse(exams []coursepass.ExamSummary) ExamMyListResponse {
 	return ExamMyListResponse{
 		Exams: newExamSummaries(exams),
