@@ -13,6 +13,8 @@
                 <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
                 <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
                 <Attribute Name="NotID" SearchName="NotID" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="LastActivityAtFrom" SearchName="LastActivityAtFrom" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="LastActivityAtTo" SearchName="LastActivityAtTo" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
             </Attributes>
             <Template>
                 <Attribute Name="Login" VTAttrName="Login" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
@@ -20,6 +22,118 @@
                 <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="true" Form="HTML_NONE" Search="HTML_NONE"></Attribute>
                 <Attribute Name="LastActivityAt" VTAttrName="LastActivityAt" List="true" Form="HTML_NONE" Search="HTML_NONE"></Attribute>
                 <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="LastActivityAtFrom" VTAttrName="LastActivityAtFrom" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="LastActivityAtTo" VTAttrName="LastActivityAtTo" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Course" Mode="Full">
+            <TerminalPath>courses</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Title" AttrName="Title" SearchName="TitleILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Description" AttrName="Description" SearchName="DescriptionILike" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="AvailabilityType" AttrName="AvailabilityType" SearchName="AvailabilityTypeILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="AvailableFrom" AttrName="AvailableFrom" SearchName="AvailableFrom" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="AvailableTo" AttrName="AvailableTo" SearchName="AvailableTo" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="TimeLimitMinutes" AttrName="TimeLimitMinutes" SearchName="TimeLimitMinutes" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="AvailableToFrom" SearchName="AvailableToFrom" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="AvailableFromTo" SearchName="AvailableFromTo" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="Title" VTAttrName="Title" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Description" VTAttrName="Description" List="true" Form="HTML_EDITOR" Search="HTML_EDITOR"></Attribute>
+                <Attribute Name="AvailabilityType" VTAttrName="AvailabilityType" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="AvailableFrom" VTAttrName="AvailableFrom" List="true" Form="HTML_DATETIME" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="AvailableTo" VTAttrName="AvailableTo" List="true" Form="HTML_DATETIME" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="TimeLimitMinutes" VTAttrName="TimeLimitMinutes" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+                <Attribute Name="AvailableToFrom" VTAttrName="AvailableToFrom" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="AvailableFromTo" VTAttrName="AvailableFromTo" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Exam" Mode="Full">
+            <TerminalPath>exams</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CourseID" AttrName="CourseID" SearchName="CourseID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="StudentID" AttrName="StudentID" SearchName="StudentID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Answers" AttrName="Answers" SearchName="Answers" Summary="false" Search="false" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="TotalQuestions" AttrName="TotalQuestions" SearchName="TotalQuestions" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CorrectAnswers" AttrName="CorrectAnswers" SearchName="CorrectAnswers" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Status" AttrName="Status" SearchName="StatusILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="FinalScore" AttrName="FinalScore" SearchName="FinalScore" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="FinishedAt" AttrName="FinishedAt" SearchName="FinishedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="QuestionIDs" AttrName="QuestionIDs" SearchName="QuestionIDs" Summary="false" Search="false" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusIn" SearchName="StatusIn" Summary="false" Search="true" Max="255" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="CourseID" VTAttrName="CourseID" List="false" FKOpts="title" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Course" VTAttrName="CourseID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="StudentID" VTAttrName="StudentID" List="false" FKOpts="login" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Student" VTAttrName="StudentID" List="true" FKOpts="login" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="TotalQuestions" VTAttrName="TotalQuestions" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CorrectAnswers" VTAttrName="CorrectAnswers" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Status" VTAttrName="Status" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="FinalScore" VTAttrName="FinalScore" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="FinishedAt" VTAttrName="FinishedAt" List="true" Form="HTML_DATETIME" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="QuestionIDs" VTAttrName="QuestionIDs" List="false" FKOpts="id" Form="HTML_SELECT" Search="HTML_NONE"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+                <Attribute Name="StatusIn" VTAttrName="StatusIn" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Question" Mode="Full">
+            <TerminalPath>questions</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="CourseID" AttrName="CourseID" SearchName="CourseID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="PhotoFileID" AttrName="PhotoFileID" SearchName="PhotoFileID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="QuestionText" AttrName="QuestionText" SearchName="QuestionTextILike" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Options" AttrName="Options" SearchName="Options" Summary="false" Search="false" Max="0" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="QuestionType" AttrName="QuestionType" SearchName="QuestionTypeILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="CourseID" VTAttrName="CourseID" List="false" FKOpts="title" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Course" VTAttrName="CourseID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="PhotoFileID" VTAttrName="PhotoFileID" List="false" FKOpts="title" Form="HTML_FILE" Search="HTML_FILE"></Attribute>
+                <Attribute Name="PhotoFile" VTAttrName="PhotoFileID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
+                <Attribute Name="QuestionText" VTAttrName="QuestionText" List="true" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="QuestionType" VTAttrName="QuestionType" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
+            </Template>
+        </Entity>
+        <Entity Name="Student" Mode="Full">
+            <TerminalPath>students</TerminalPath>
+            <Attributes>
+                <Attribute Name="ID" AttrName="ID" SearchName="ID" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="Login" AttrName="Login" SearchName="LoginILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="PasswordHash" AttrName="PasswordHash" SearchName="PasswordHashILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="FirstName" AttrName="FirstName" SearchName="FirstNameILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="LastName" AttrName="LastName" SearchName="LastNameILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate=""></Attribute>
+                <Attribute Name="Email" AttrName="Email" SearchName="EmailILike" Summary="true" Search="true" Max="255" Min="0" Required="true" Validate="email"></Attribute>
+                <Attribute Name="CreatedAt" AttrName="CreatedAt" SearchName="CreatedAt" Summary="true" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+                <Attribute Name="StatusID" AttrName="StatusID" SearchName="StatusID" Summary="true" Search="true" Max="0" Min="0" Required="true" Validate="status"></Attribute>
+                <Attribute Name="IDs" SearchName="IDs" Summary="false" Search="true" Max="0" Min="0" Required="false" Validate=""></Attribute>
+            </Attributes>
+            <Template>
+                <Attribute Name="Login" VTAttrName="Login" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="PasswordHash" VTAttrName="PasswordHash" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="FirstName" VTAttrName="FirstName" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="LastName" VTAttrName="LastName" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Email" VTAttrName="Email" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
+                <Attribute Name="StatusID" VTAttrName="StatusID" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>
             </Template>
         </Entity>
     </VTEntities>

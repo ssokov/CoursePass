@@ -27,13 +27,13 @@ func NewCoursesService(dbc db.DB, logger embedlog.Logger) *CoursesService {
 func (cs *CoursesService) Me(ctx context.Context) (MeResponse, error) {
 	studentID, ok := studentIDFromContext(ctx)
 	if !ok || studentID <= 0 {
-		cs.Logger.Error(ctx, "coursepass me failed: no studentID in context")
+		cs.Logger.Error(ctx, "course me failed: no studentID in context")
 		return MeResponse{}, mapRPCError(coursepass.ErrInvalidToken)
 	}
 
 	student, err := cs.courseManager.Me(ctx, studentID)
 	if err != nil {
-		cs.Logger.Error(ctx, "coursepass me failed", "err", err)
+		cs.Logger.Error(ctx, "course me failed", "err", err)
 		return MeResponse{}, mapRPCError(err)
 	}
 
@@ -50,21 +50,21 @@ func (cs *CoursesService) List(ctx context.Context, req ListRequest) (ListRespon
 
 	courses, err := cs.courseManager.Summary(ctx, req.Page, req.PageSize)
 	if err != nil {
-		cs.Logger.Error(ctx, "coursepass list failed", "err", err)
+		cs.Logger.Error(ctx, "course list failed", "err", err)
 		return ListResponse{}, mapRPCError(err)
 	}
 
 	return newCoursesSummaryResponse(courses), nil
 }
 
-func (cs *CoursesService) ById(ctx context.Context, req ByIDRequest) (ByIDResponse, error) {
+func (cs *CoursesService) ByID(ctx context.Context, req ByIDRequest) (ByIDResponse, error) {
 	if req.CourseID < 1 {
 		return ByIDResponse{}, invalidParamsError("courseId", "must be greater than 0")
 	}
 
 	courseObj, err := cs.courseManager.ByID(ctx, req.CourseID)
 	if err != nil {
-		cs.Logger.Error(ctx, "coursepass by id failed", "err", err)
+		cs.Logger.Error(ctx, "course by id failed", "err", err)
 		return ByIDResponse{}, mapRPCError(err)
 	}
 

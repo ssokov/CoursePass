@@ -18,7 +18,7 @@ var (
 
 const (
 	NSAuth   = "auth"
-	NSCourse = "coursepass"
+	NSCourse = "course"
 	NSExam   = "exam"
 )
 

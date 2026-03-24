@@ -12,24 +12,24 @@ import (
 
 var RPC = struct {
 	AuthService    struct{ Register, Login string }
-	CoursesService struct{ Me, List, ById string }
-	ExamService    struct{ Start, Question, SaveAnswer, Submit, MyList string }
+	CoursesService struct{ Me, List, ByID string }
+	ExamService    struct{ Start, GetQuestion, Answer, Submit, History string }
 }{
 	AuthService: struct{ Register, Login string }{
 		Register: "register",
 		Login:    "login",
 	},
-	CoursesService: struct{ Me, List, ById string }{
+	CoursesService: struct{ Me, List, ByID string }{
 		Me:   "me",
 		List: "list",
-		ById: "byid",
+		ByID: "byid",
 	},
-	ExamService: struct{ Start, Question, SaveAnswer, Submit, MyList string }{
-		Start:      "start",
-		Question:   "question",
-		SaveAnswer: "saveanswer",
-		Submit:     "submit",
-		MyList:     "mylist",
+	ExamService: struct{ Start, GetQuestion, Answer, Submit, History string }{
+		Start:       "start",
+		GetQuestion: "getquestion",
+		Answer:      "answer",
+		Submit:      "submit",
+		History:     "history",
 	},
 }
 
@@ -275,7 +275,7 @@ func (CoursesService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"ById": {
+			"ByID": {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:     "req",
@@ -294,7 +294,7 @@ func (CoursesService) SMD() smd.ServiceInfo {
 					TypeName: "ByIDResponse",
 					Properties: smd.PropertyList{
 						{
-							Name: "coursepass",
+							Name: "course",
 							Ref:  "#/definitions/Course",
 							Type: smd.Object,
 						},
@@ -371,7 +371,7 @@ func (s CoursesService) Invoke(ctx context.Context, method string, params json.R
 
 		resp.Set(s.List(ctx, args.Req))
 
-	case RPC.CoursesService.ById:
+	case RPC.CoursesService.ByID:
 		var args = struct {
 			Req ByIDRequest `json:"req"`
 		}{}
@@ -388,7 +388,7 @@ func (s CoursesService) Invoke(ctx context.Context, method string, params json.R
 			}
 		}
 
-		resp.Set(s.ById(ctx, args.Req))
+		resp.Set(s.ByID(ctx, args.Req))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -441,12 +441,12 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"Question": {
+			"GetQuestion": {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:     "req",
 						Type:     smd.Object,
-						TypeName: "ExamQuestionRequest",
+						TypeName: "ExamGetQuestionRequest",
 						Properties: smd.PropertyList{
 							{
 								Name: "examId",
@@ -505,12 +505,12 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"SaveAnswer": {
+			"Answer": {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:     "req",
 						Type:     smd.Object,
-						TypeName: "SaveAnswerRequest",
+						TypeName: "AnswerRequest",
 						Properties: smd.PropertyList{
 							{
 								Name: "examId",
@@ -572,12 +572,12 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 			},
-			"MyList": {
+			"History": {
 				Parameters: []smd.JSONSchema{
 					{
 						Name:     "req",
 						Type:     smd.Object,
-						TypeName: "ExamMyListRequest",
+						TypeName: "ExamHistoryRequest",
 						Properties: smd.PropertyList{
 							{
 								Name: "page",
@@ -592,7 +592,7 @@ func (ExamService) SMD() smd.ServiceInfo {
 				},
 				Returns: smd.JSONSchema{
 					Type:     smd.Object,
-					TypeName: "ExamMyListResponse",
+					TypeName: "ExamHistoryResponse",
 					Properties: smd.PropertyList{
 						{
 							Name: "exams",
@@ -660,9 +660,9 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 
 		resp.Set(s.Start(ctx, args.Req))
 
-	case RPC.ExamService.Question:
+	case RPC.ExamService.GetQuestion:
 		var args = struct {
-			Req ExamQuestionRequest `json:"req"`
+			Req ExamGetQuestionRequest `json:"req"`
 		}{}
 
 		if zenrpc.IsArray(params) {
@@ -677,11 +677,11 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.Question(ctx, args.Req))
+		resp.Set(s.GetQuestion(ctx, args.Req))
 
-	case RPC.ExamService.SaveAnswer:
+	case RPC.ExamService.Answer:
 		var args = struct {
-			Req SaveAnswerRequest `json:"req"`
+			Req AnswerRequest `json:"req"`
 		}{}
 
 		if zenrpc.IsArray(params) {
@@ -696,7 +696,7 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.SaveAnswer(ctx, args.Req))
+		resp.Set(s.Answer(ctx, args.Req))
 
 	case RPC.ExamService.Submit:
 		var args = struct {
@@ -717,9 +717,9 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 
 		resp.Set(s.Submit(ctx, args.Req))
 
-	case RPC.ExamService.MyList:
+	case RPC.ExamService.History:
 		var args = struct {
-			Req ExamMyListRequest `json:"req"`
+			Req ExamHistoryRequest `json:"req"`
 		}{}
 
 		if zenrpc.IsArray(params) {
@@ -734,7 +734,7 @@ func (s ExamService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.MyList(ctx, args.Req))
+		resp.Set(s.History(ctx, args.Req))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

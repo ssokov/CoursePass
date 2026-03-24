@@ -112,8 +112,8 @@ func newExamSummary(summary coursepass.ExamSummary) ExamSummary {
 	}
 }
 
-func newExamMyListResponse(exams []coursepass.ExamSummary) ExamMyListResponse {
-	return ExamMyListResponse{
+func newExamHistoryResponse(exams []coursepass.ExamSummary) ExamHistoryResponse {
+	return ExamHistoryResponse{
 		Exams: newExamSummaries(exams),
 	}
 }

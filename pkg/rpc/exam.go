@@ -44,7 +44,7 @@ func (es *ExamService) Start(ctx context.Context, req ExamStartRequest) (ExamSta
 	return newExamStartResponse(start), nil
 }
 
-func (es *ExamService) Question(ctx context.Context, req ExamQuestionRequest) (Question, error) {
+func (es *ExamService) GetQuestion(ctx context.Context, req ExamGetQuestionRequest) (Question, error) {
 	if req.ExamID < 1 {
 		return Question{}, invalidParamsError("examId", "must be greater than 0")
 	}
@@ -67,7 +67,7 @@ func (es *ExamService) Question(ctx context.Context, req ExamQuestionRequest) (Q
 	return newQuestionResponse(question), nil
 }
 
-func (es *ExamService) SaveAnswer(ctx context.Context, req SaveAnswerRequest) error {
+func (es *ExamService) Answer(ctx context.Context, req AnswerRequest) error {
 	if req.ExamID < 1 {
 		return invalidParamsError("examId", "must be greater than 0")
 	}
@@ -111,7 +111,7 @@ func (es *ExamService) Submit(ctx context.Context, req ExamSubmitRequest) (ExamR
 	return newExamResultResponse(result), nil
 }
 
-func (es *ExamService) MyList(ctx context.Context, req ExamMyListRequest) (ExamMyListResponse, error) {
+func (es *ExamService) History(ctx context.Context, req ExamHistoryRequest) (ExamHistoryResponse, error) {
 	if req.Page < 1 {
 		req.Page = 1
 	}
@@ -121,15 +121,15 @@ func (es *ExamService) MyList(ctx context.Context, req ExamMyListRequest) (ExamM
 
 	studentID, ok := studentIDFromContext(ctx)
 	if !ok || studentID <= 0 {
-		es.Logger.Error(ctx, "exam mylist failed: no studentID in context")
-		return ExamMyListResponse{}, mapRPCError(coursepass.ErrInvalidToken)
+		es.Logger.Error(ctx, "exam history failed: no studentID in context")
+		return ExamHistoryResponse{}, mapRPCError(coursepass.ErrInvalidToken)
 	}
 
 	exams, err := es.examManager.MyList(ctx, studentID, req.Page, req.PageSize)
 	if err != nil {
-		es.Logger.Error(ctx, "exam mylist failed", "err", err)
-		return ExamMyListResponse{}, mapRPCError(err)
+		es.Logger.Error(ctx, "exam history failed", "err", err)
+		return ExamHistoryResponse{}, mapRPCError(err)
 	}
 
-	return newExamMyListResponse(exams), nil
+	return newExamHistoryResponse(exams), nil
 }

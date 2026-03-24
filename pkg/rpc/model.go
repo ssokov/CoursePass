@@ -44,7 +44,7 @@ type Course struct {
 }
 
 type ByIDResponse struct {
-	Course Course `json:"coursepass"`
+	Course Course `json:"course"`
 }
 
 type ByIDRequest struct {
@@ -73,22 +73,16 @@ type ExamStartRequest struct {
 	CourseID int `json:"courseId"`
 }
 
-type ExamQuestionRequest struct {
+type ExamGetQuestionRequest struct {
 	ExamID     int `json:"examId"`
 	QuestionID int `json:"questionId"`
-}
-
-type ExamSaveAnswerRequest struct {
-	ExamID     int   `json:"examId"`
-	QuestionID int   `json:"questionId"`
-	OptionIDs  []int `json:"optionIds"`
 }
 
 type ExamSubmitRequest struct {
 	ExamID int `json:"examId"`
 }
 
-type ExamMyListRequest struct {
+type ExamHistoryRequest struct {
 	Page     int `json:"page"`
 	PageSize int `json:"pageSize"`
 }
@@ -129,11 +123,11 @@ type ExamSummary struct {
 	FinishedAt string `json:"finishedAt"`
 }
 
-type ExamMyListResponse struct {
+type ExamHistoryResponse struct {
 	Exams []ExamSummary `json:"exams"`
 }
 
-type SaveAnswerRequest struct {
+type AnswerRequest struct {
 	ExamID     int   `json:"examId"`
 	QuestionID int   `json:"questionId"`
 	OptionIDs  []int `json:"optionIds"`
