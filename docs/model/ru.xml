@@ -7,40 +7,40 @@
                     <Crumbs>
                         <courseAdd>Добавить</courseAdd>
                         <courseEdit>Редактировать</courseEdit>
-                        <courseList></courseList>
+                        <courseList>Курсы</courseList>
                     </Crumbs>
                     <Form>
                         <titleLabel>Название</titleLabel>
                         <descriptionLabel>Описание</descriptionLabel>
-                        <availabilityTypeLabel></availabilityTypeLabel>
-                        <availableFromLabel></availableFromLabel>
-                        <availableToLabel></availableToLabel>
-                        <timeLimitMinutesLabel></timeLimitMinutesLabel>
+                        <availabilityTypeLabel>Тип доступности</availabilityTypeLabel>
+                        <availableFromLabel>Доступен с</availableFromLabel>
+                        <availableToLabel>Доступен до</availableToLabel>
+                        <timeLimitMinutesLabel>Лимит времени (мин)</timeLimitMinutesLabel>
                         <statusIdLabel>Статус</statusIdLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Курсы</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
                             <title>Название</title>
                             <description>Описание</description>
-                            <availabilityType></availabilityType>
-                            <availableFrom></availableFrom>
-                            <availableTo></availableTo>
-                            <timeLimitMinutes></timeLimitMinutes>
+                            <availabilityType>Тип доступности</availabilityType>
+                            <availableFrom>Доступен с</availableFrom>
+                            <availableTo>Доступен до</availableTo>
+                            <timeLimitMinutes>Лимит времени (мин)</timeLimitMinutes>
                             <createdAt>Создано</createdAt>
                             <statusId>Статус</statusId>
-                            <ids></ids>
-                            <availableToFrom></availableToFrom>
-                            <availableFromTo></availableFromTo>
+                            <ids>ID</ids>
+                            <availableToFrom>Доступен до (от)</availableToFrom>
+                            <availableFromTo>Доступен с (до)</availableFromTo>
                         </Filter>
                         <Headers>
                             <title>Название</title>
                             <description>Описание</description>
-                            <availabilityType></availabilityType>
-                            <availableFrom></availableFrom>
-                            <availableTo></availableTo>
-                            <timeLimitMinutes></timeLimitMinutes>
+                            <availabilityType>Тип доступности</availabilityType>
+                            <availableFrom>Доступен с</availableFrom>
+                            <availableTo>Доступен до</availableTo>
+                            <timeLimitMinutes>Лимит времени (мин)</timeLimitMinutes>
                             <status>Статус</status>
                             <actions>Действия</actions>
                         </Headers>
@@ -50,41 +50,41 @@
                     <Crumbs>
                         <examAdd>Добавить</examAdd>
                         <examEdit>Редактировать</examEdit>
-                        <examList></examList>
+                        <examList>Экзамены</examList>
                     </Crumbs>
                     <Form>
-                        <courseIdLabel></courseIdLabel>
-                        <studentIdLabel></studentIdLabel>
-                        <totalQuestionsLabel></totalQuestionsLabel>
-                        <correctAnswersLabel></correctAnswersLabel>
+                        <courseIdLabel>Курс</courseIdLabel>
+                        <studentIdLabel>Студент</studentIdLabel>
+                        <totalQuestionsLabel>Всего вопросов</totalQuestionsLabel>
+                        <correctAnswersLabel>Правильных ответов</correctAnswersLabel>
                         <statusLabel>Статус</statusLabel>
-                        <finalScoreLabel></finalScoreLabel>
-                        <finishedAtLabel></finishedAtLabel>
-                        <questionIdsLabel></questionIdsLabel>
+                        <finalScoreLabel>Итоговый балл</finalScoreLabel>
+                        <finishedAtLabel>Завершен</finishedAtLabel>
+                        <questionIdsLabel>Вопросы экзамена</questionIdsLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Экзамены</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
-                            <courseId></courseId>
-                            <studentId></studentId>
-                            <totalQuestions></totalQuestions>
-                            <correctAnswers></correctAnswers>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
+                            <courseId>Курс</courseId>
+                            <studentId>Студент</studentId>
+                            <totalQuestions>Всего вопросов</totalQuestions>
+                            <correctAnswers>Правильных ответов</correctAnswers>
                             <status>Статус</status>
-                            <finalScore></finalScore>
-                            <finishedAt></finishedAt>
+                            <finalScore>Итоговый балл</finalScore>
+                            <finishedAt>Завершен</finishedAt>
                             <createdAt>Создано</createdAt>
-                            <ids></ids>
-                            <statusIn></statusIn>
+                            <ids>ID</ids>
+                            <statusIn>Статусы</statusIn>
                         </Filter>
                         <Headers>
-                            <course></course>
-                            <student></student>
-                            <totalQuestions></totalQuestions>
-                            <correctAnswers></correctAnswers>
+                            <course>Курс</course>
+                            <student>Студент</student>
+                            <totalQuestions>Всего вопросов</totalQuestions>
+                            <correctAnswers>Правильных ответов</correctAnswers>
                             <status>Статус</status>
-                            <finalScore></finalScore>
-                            <finishedAt></finishedAt>
+                            <finalScore>Итоговый балл</finalScore>
+                            <finishedAt>Завершен</finishedAt>
                             <actions>Действия</actions>
                         </Headers>
                     </List>
@@ -93,30 +93,30 @@
                     <Crumbs>
                         <questionAdd>Добавить</questionAdd>
                         <questionEdit>Редактировать</questionEdit>
-                        <questionList></questionList>
+                        <questionList>Вопросы</questionList>
                     </Crumbs>
                     <Form>
-                        <courseIdLabel></courseIdLabel>
-                        <photoFileIdLabel></photoFileIdLabel>
-                        <questionTextLabel></questionTextLabel>
-                        <questionTypeLabel></questionTypeLabel>
+                        <courseIdLabel>Курс</courseIdLabel>
+                        <photoFileIdLabel>Файл изображения</photoFileIdLabel>
+                        <questionTextLabel>Текст вопроса</questionTextLabel>
+                        <questionTypeLabel>Тип вопроса</questionTypeLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Вопросы</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
-                            <courseId></courseId>
-                            <photoFileId></photoFileId>
-                            <questionText></questionText>
-                            <questionType></questionType>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
+                            <courseId>Курс</courseId>
+                            <photoFileId>Файл изображения</photoFileId>
+                            <questionText>Текст вопроса</questionText>
+                            <questionType>Тип вопроса</questionType>
                             <createdAt>Создано</createdAt>
-                            <ids></ids>
+                            <ids>ID</ids>
                         </Filter>
                         <Headers>
-                            <course></course>
-                            <photoFile></photoFile>
-                            <questionText></questionText>
-                            <questionType></questionType>
+                            <course>Курс</course>
+                            <photoFile>Файл изображения</photoFile>
+                            <questionText>Текст вопроса</questionText>
+                            <questionType>Тип вопроса</questionType>
                             <actions>Действия</actions>
                         </Headers>
                     </List>
@@ -125,34 +125,34 @@
                     <Crumbs>
                         <studentAdd>Добавить</studentAdd>
                         <studentEdit>Редактировать</studentEdit>
-                        <studentList></studentList>
+                        <studentList>Студенты</studentList>
                     </Crumbs>
                     <Form>
                         <loginLabel>Логин</loginLabel>
-                        <passwordHashLabel></passwordHashLabel>
-                        <firstNameLabel></firstNameLabel>
-                        <lastNameLabel></lastNameLabel>
+                        <passwordHashLabel>Хеш пароля</passwordHashLabel>
+                        <firstNameLabel>Имя</firstNameLabel>
+                        <lastNameLabel>Фамилия</lastNameLabel>
                         <emailLabel>Email</emailLabel>
                         <statusIdLabel>Статус</statusIdLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Студенты</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
                             <login>Логин</login>
-                            <passwordHash></passwordHash>
-                            <firstName></firstName>
-                            <lastName></lastName>
+                            <passwordHash>Хеш пароля</passwordHash>
+                            <firstName>Имя</firstName>
+                            <lastName>Фамилия</lastName>
                             <email>Email</email>
                             <createdAt>Создано</createdAt>
                             <statusId>Статус</statusId>
-                            <ids></ids>
+                            <ids>ID</ids>
                         </Filter>
                         <Headers>
                             <login>Логин</login>
-                            <passwordHash></passwordHash>
-                            <firstName></firstName>
-                            <lastName></lastName>
+                            <passwordHash>Хеш пароля</passwordHash>
+                            <firstName>Имя</firstName>
+                            <lastName>Фамилия</lastName>
                             <email>Email</email>
                             <status>Статус</status>
                             <actions>Действия</actions>
@@ -167,42 +167,42 @@
                     <Crumbs>
                         <vfsFileAdd>Добавить</vfsFileAdd>
                         <vfsFileEdit>Редактировать</vfsFileEdit>
-                        <vfsFileList></vfsFileList>
+                        <vfsFileList>Файлы</vfsFileList>
                     </Crumbs>
                     <Form>
-                        <folderIdLabel></folderIdLabel>
+                        <folderIdLabel>Папка</folderIdLabel>
                         <titleLabel>Название</titleLabel>
-                        <pathLabel></pathLabel>
-                        <paramsLabel></paramsLabel>
-                        <isFavoriteLabel></isFavoriteLabel>
-                        <mimeTypeLabel></mimeTypeLabel>
-                        <fileSizeLabel></fileSizeLabel>
-                        <fileExistsLabel></fileExistsLabel>
+                        <pathLabel>Путь</pathLabel>
+                        <paramsLabel>Параметры</paramsLabel>
+                        <isFavoriteLabel>Избранное</isFavoriteLabel>
+                        <mimeTypeLabel>MIME-тип</mimeTypeLabel>
+                        <fileSizeLabel>Размер</fileSizeLabel>
+                        <fileExistsLabel>Существует</fileExistsLabel>
                         <statusIdLabel>Статус</statusIdLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Файлы</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
-                            <folderId></folderId>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
+                            <folderId>Папка</folderId>
                             <title>Название</title>
-                            <path></path>
-                            <params></params>
-                            <isFavorite></isFavorite>
-                            <mimeType></mimeType>
-                            <fileSize></fileSize>
-                            <fileExists></fileExists>
+                            <path>Путь</path>
+                            <params>Параметры</params>
+                            <isFavorite>Избранное</isFavorite>
+                            <mimeType>MIME-тип</mimeType>
+                            <fileSize>Размер</fileSize>
+                            <fileExists>Существует</fileExists>
                             <createdAt>Создано</createdAt>
                             <statusId>Статус</statusId>
-                            <ids></ids>
+                            <ids>ID</ids>
                         </Filter>
                         <Headers>
                             <title>Название</title>
-                            <path></path>
-                            <isFavorite></isFavorite>
-                            <mimeType></mimeType>
-                            <fileSize></fileSize>
-                            <fileExists></fileExists>
+                            <path>Путь</path>
+                            <isFavorite>Избранное</isFavorite>
+                            <mimeType>MIME-тип</mimeType>
+                            <fileSize>Размер</fileSize>
+                            <fileExists>Существует</fileExists>
                             <status>Статус</status>
                             <actions>Действия</actions>
                         </Headers>
@@ -212,29 +212,29 @@
                     <Crumbs>
                         <vfsFolderAdd>Добавить</vfsFolderAdd>
                         <vfsFolderEdit>Редактировать</vfsFolderEdit>
-                        <vfsFolderList></vfsFolderList>
+                        <vfsFolderList>Папки</vfsFolderList>
                     </Crumbs>
                     <Form>
-                        <parentFolderIdLabel></parentFolderIdLabel>
+                        <parentFolderIdLabel>Родительская папка</parentFolderIdLabel>
                         <titleLabel>Название</titleLabel>
-                        <isFavoriteLabel></isFavoriteLabel>
+                        <isFavoriteLabel>Избранное</isFavoriteLabel>
                         <statusIdLabel>Статус</statusIdLabel>
                     </Form>
                     <List>
-                        <Title></Title>
+                        <Title>Папки</Title>
                         <Filter>
-                            <quickFilterPlaceholder></quickFilterPlaceholder>
-                            <parentFolderId></parentFolderId>
+                            <quickFilterPlaceholder>Быстрый поиск</quickFilterPlaceholder>
+                            <parentFolderId>Родительская папка</parentFolderId>
                             <title>Название</title>
-                            <isFavorite></isFavorite>
+                            <isFavorite>Избранное</isFavorite>
                             <createdAt>Создано</createdAt>
                             <statusId>Статус</statusId>
-                            <ids></ids>
+                            <ids>ID</ids>
                         </Filter>
                         <Headers>
-                            <parentFolder></parentFolder>
+                            <parentFolder>Родительская папка</parentFolder>
                             <title>Название</title>
-                            <isFavorite></isFavorite>
+                            <isFavorite>Избранное</isFavorite>
                             <status>Статус</status>
                             <actions>Действия</actions>
                         </Headers>
