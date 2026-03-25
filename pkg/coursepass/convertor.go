@@ -32,6 +32,14 @@ func newStudent(student db.Student) Student {
 	}
 }
 
+func newStudentAuth(student db.Student) studentAuth {
+	return studentAuth{
+		StudentID:    student.ID,
+		Login:        student.Login,
+		PasswordHash: student.PasswordHash,
+	}
+}
+
 func newAuthToken(token string, expiresIn int) AuthToken {
 	return AuthToken{
 		AccessToken: token,
@@ -65,6 +73,10 @@ func newCourseSummary(course db.Course) CourseSummary {
 		AvailableFrom: formatTimePtr(course.AvailableFrom),
 		AvailableTo:   formatTimePtr(course.AvailableTo),
 	}
+}
+
+func newCourseSummaries(courses []db.Course) []CourseSummary {
+	return Map(courses, newCourseSummary)
 }
 
 func newCourse(course db.Course) Course {
@@ -106,11 +118,25 @@ func newQuestion(question db.Question, mediaWebPath string) Question {
 	}
 }
 
+func newQuestions(questions []db.Question, mediaWebPath string) []Question {
+	result := make([]Question, len(questions))
+	for i := range questions {
+		result[i] = newQuestion(questions[i], mediaWebPath)
+	}
+
+	return result
+}
+
 func newQuestionOption(option db.QuestionOption) QuestionOption {
 	return QuestionOption{
 		OptionID:   option.OptionID,
 		OptionText: option.OptionText,
+		IsCorrect:  option.IsCorrect,
 	}
+}
+
+func newQuestionOptions(options db.QuestionOptions) []QuestionOption {
+	return Map(options, newQuestionOption)
 }
 
 func newQuestionPhotoURL(photoFile *db.VfsFile, mediaWebPath string) *string {
@@ -146,4 +172,77 @@ func newExamSummary(exam db.Exam) ExamSummary {
 		FinalScore: finalScore,
 		FinishedAt: finishedAt,
 	}
+}
+
+func newExamSummaries(exams []db.Exam) []ExamSummary {
+	return Map(exams, newExamSummary)
+}
+
+func newExamState(exam db.Exam) ExamState {
+	return ExamState{
+		ExamID:      exam.ID,
+		CourseID:    exam.CourseID,
+		Status:      exam.Status,
+		QuestionIDs: slicesClone(exam.QuestionIDs),
+		Answers:     newExamStateAnswers(exam.Answers),
+	}
+}
+
+func newExamStateAnswers(answers db.ExamAnswers) []ExamAnswer {
+	result := make([]ExamAnswer, len(answers))
+	for i := range answers {
+		result[i] = ExamAnswer{
+			QuestionID: answers[i].QuestionID,
+			OptionIDs:  slicesClone(answers[i].OptionIDs),
+		}
+	}
+
+	return result
+}
+
+func newDBExamStateAnswers(answers []ExamAnswer) db.ExamAnswers {
+	result := make(db.ExamAnswers, len(answers))
+	for i := range answers {
+		result[i] = db.ExamAnswer{
+			QuestionID: answers[i].QuestionID,
+			OptionIDs:  slicesClone(answers[i].OptionIDs),
+		}
+	}
+
+	return result
+}
+
+func newDBExamAnswersUpdate(examID int, answers []ExamAnswer) *db.Exam {
+	return &db.Exam{
+		ID:      examID,
+		Answers: newDBExamStateAnswers(answers),
+	}
+}
+
+func newDBExamSubmitUpdate(
+	examID int,
+	status string,
+	correctAnswers, totalQuestions int,
+	finalScore float64,
+	finishedAt time.Time,
+) *db.Exam {
+	return &db.Exam{
+		ID:             examID,
+		Status:         status,
+		CorrectAnswers: &correctAnswers,
+		TotalQuestions: &totalQuestions,
+		FinalScore:     &finalScore,
+		FinishedAt:     &finishedAt,
+	}
+}
+
+func slicesClone[T any](in []T) []T {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]T, len(in))
+	copy(out, in)
+
+	return out
 }

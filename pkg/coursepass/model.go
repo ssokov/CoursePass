@@ -44,6 +44,12 @@ type Student struct {
 	LastName  string
 }
 
+type studentAuth struct {
+	StudentID    int
+	Login        string
+	PasswordHash string
+}
+
 type AuthConfig struct {
 	JWTSecret     string
 	JWTTTLSeconds int
@@ -135,6 +141,7 @@ type Question struct {
 type QuestionOption struct {
 	OptionID   int
 	OptionText string
+	IsCorrect  bool
 }
 
 type ExamResult struct {
@@ -151,4 +158,17 @@ type ExamSummary struct {
 	Status     string
 	FinalScore int
 	FinishedAt string
+}
+
+type ExamState struct {
+	ExamID      int
+	CourseID    int
+	Status      string
+	QuestionIDs []int
+	Answers     []ExamAnswer
+}
+
+type ExamAnswer struct {
+	QuestionID int
+	OptionIDs  []int
 }

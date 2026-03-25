@@ -50,7 +50,9 @@ func (am *AuthManager) Register(
 		return AuthToken{}, fmt.Errorf("failed create student: %w", err)
 	}
 
-	token, expiresIn, err := generateJWT(am.auth, student.ID, student.Login)
+	authStudent := newStudentAuth(*student)
+
+	token, expiresIn, err := generateJWT(am.auth, authStudent.StudentID, authStudent.Login)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed create JWT: %w", err)
 	}
@@ -59,21 +61,23 @@ func (am *AuthManager) Register(
 }
 
 func (am *AuthManager) Login(ctx context.Context, login, password string) (AuthToken, error) {
-	student, err := am.repo.OneStudent(ctx, &db.StudentSearch{
+	studentData, err := am.repo.OneStudent(ctx, &db.StudentSearch{
 		Login: &login,
 	})
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed get student: %w", err)
 	}
-	if student == nil {
+	if studentData == nil {
 		return AuthToken{}, ErrInvalidCredentials
 	}
+
+	student := newStudentAuth(*studentData)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(student.PasswordHash), []byte(password)); err != nil {
 		return AuthToken{}, ErrInvalidCredentials
 	}
 
-	token, expiresIn, err := generateJWT(am.auth, student.ID, student.Login)
+	token, expiresIn, err := generateJWT(am.auth, student.StudentID, student.Login)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed create JWT: %w", err)
 	}
