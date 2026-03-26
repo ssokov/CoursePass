@@ -229,13 +229,7 @@ func newDBExamAnswersUpdate(examID int, answers []ExamAnswer) *db.Exam {
 	}
 }
 
-func newDBExamSubmitUpdate(
-	examID int,
-	status string,
-	correctAnswers, totalQuestions int,
-	finalScore float64,
-	finishedAt time.Time,
-) *db.Exam {
+func newDBExamSubmitUpdate(examID int, status string, correctAnswers, totalQuestions int, finalScore float64, finishedAt time.Time) *db.Exam {
 	return &db.Exam{
 		ID:             examID,
 		Status:         status,

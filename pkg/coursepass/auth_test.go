@@ -51,11 +51,7 @@ func TestHashPassword_DifferentPasswords(t *testing.T) {
 	assert.NotEqual(t, hashOne, hashTwo)
 }
 
-func createStudent(
-	t *testing.T,
-	dbo db.DB,
-	login, email, passwordHash string,
-) (*db.Student, func()) {
+func createStudent(t *testing.T, dbo db.DB, login, email, passwordHash string) (*db.Student, func()) {
 	t.Helper()
 
 	student, cleanup := dbtest.Student(

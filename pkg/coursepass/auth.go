@@ -29,10 +29,7 @@ func NewAuthManager(dbo db.DB, logger embedlog.Logger, authCfg AuthConfig) *Auth
 	}
 }
 
-func (am *AuthManager) Register(
-	ctx context.Context,
-	login, password, email, firstName, lastName string,
-) (AuthToken, error) {
+func (am *AuthManager) Register(ctx context.Context, login, password, email, firstName, lastName string) (AuthToken, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed generate hash password: %w", err)
