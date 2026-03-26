@@ -2,6 +2,7 @@ package coursepass
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"courses/pkg/db"
@@ -12,17 +13,18 @@ import (
 )
 
 type AuthManager struct {
-	db   db.DB
 	repo db.CoursesRepo
 	auth AuthConfig
 	embedlog.Logger
 }
 
-const registerLockName = "student_register"
+const (
+	uxStudentsLoginConstraint = "uq_students_login"
+	uxStudentsEmailConstraint = "uq_students_email"
+)
 
 func NewAuthManager(dbo db.DB, logger embedlog.Logger, authCfg AuthConfig) *AuthManager {
 	return &AuthManager{
-		db:     dbo,
 		repo:   db.NewCoursesRepo(dbo),
 		auth:   authCfg,
 		Logger: logger,
@@ -30,66 +32,81 @@ func NewAuthManager(dbo db.DB, logger embedlog.Logger, authCfg AuthConfig) *Auth
 }
 
 func (am *AuthManager) Register(ctx context.Context, login, password, email, firstName, lastName string) (AuthToken, error) {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return AuthToken{}, fmt.Errorf("failed generate hash password: %w", err)
-	}
-
-	var student *db.Student
-	err = am.db.RunInLock(ctx, registerLockName, func(tx *pg.Tx) error {
-		txRepo := am.repo.WithTransaction(tx)
-
-		if existing, checkErr := txRepo.OneStudent(ctx, &db.StudentSearch{Login: &login}); checkErr != nil {
-			return checkErr
-		} else if existing != nil {
-			return ErrLoginExists
-		}
-
-		if existing, checkErr := txRepo.OneStudent(ctx, &db.StudentSearch{Email: &email}); checkErr != nil {
-			return checkErr
-		} else if existing != nil {
-			return ErrEmailExists
-		}
-
-		var addErr error
-		student, addErr = txRepo.AddStudent(ctx, newDBStudent(login, string(passwordHash), firstName, lastName, email))
-		if addErr != nil {
-			return fmt.Errorf("failed create student: %w", addErr)
-		}
-
-		return nil
-	})
+	hash, err := passwordHash(password)
 	if err != nil {
 		return AuthToken{}, err
 	}
 
-	authStudent := newStudentAuth(*student)
-
-	token, expiresIn, err := generateJWT(am.auth, authStudent.StudentID, authStudent.Login)
+	student, err := am.addStudent(ctx, login, hash, firstName, lastName, email)
 	if err != nil {
-		return AuthToken{}, fmt.Errorf("failed create JWT: %w", err)
+		return AuthToken{}, err
 	}
 
-	return newAuthToken(token, expiresIn), nil
+	return am.newTokenForStudent(newStudentAuth(*student))
 }
 
 func (am *AuthManager) Login(ctx context.Context, login, password string) (AuthToken, error) {
+	student, err := am.studentByLogin(ctx, login)
+	if err != nil {
+		return AuthToken{}, err
+	}
+
+	if err = checkPassword(student.PasswordHash, password); err != nil {
+		return AuthToken{}, ErrInvalidCredentials
+	}
+
+	return am.newTokenForStudent(student)
+}
+
+func passwordHash(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("failed generate hash password: %w", err)
+	}
+
+	return string(hash), nil
+}
+
+func isUniqueConstraintViolation(err error, constraintName string) bool {
+	var pgErr pg.Error
+	return errors.As(err, &pgErr) && pgErr.Field('n') == constraintName
+}
+
+func (am *AuthManager) addStudent(ctx context.Context, login, passwordHash, firstName, lastName, email string) (*db.Student, error) {
+	student, err := am.repo.AddStudent(ctx, newDBStudent(login, passwordHash, firstName, lastName, email))
+	if err != nil {
+		if isUniqueConstraintViolation(err, uxStudentsLoginConstraint) {
+			return nil, ErrLoginExists
+		}
+		if isUniqueConstraintViolation(err, uxStudentsEmailConstraint) {
+			return nil, ErrEmailExists
+		}
+
+		return nil, fmt.Errorf("failed add student: %w", err)
+	}
+
+	return student, nil
+}
+
+func (am *AuthManager) studentByLogin(ctx context.Context, login string) (studentAuth, error) {
 	studentData, err := am.repo.OneStudent(ctx, &db.StudentSearch{
 		Login: &login,
 	})
 	if err != nil {
-		return AuthToken{}, fmt.Errorf("failed get student: %w", err)
+		return studentAuth{}, fmt.Errorf("failed get student: %w", err)
 	}
 	if studentData == nil {
-		return AuthToken{}, ErrInvalidCredentials
+		return studentAuth{}, ErrInvalidCredentials
 	}
 
-	student := newStudentAuth(*studentData)
+	return newStudentAuth(*studentData), nil
+}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(student.PasswordHash), []byte(password)); err != nil {
-		return AuthToken{}, ErrInvalidCredentials
-	}
+func checkPassword(hash, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+}
 
+func (am *AuthManager) newTokenForStudent(student studentAuth) (AuthToken, error) {
 	token, expiresIn, err := generateJWT(am.auth, student.StudentID, student.Login)
 	if err != nil {
 		return AuthToken{}, fmt.Errorf("failed create JWT: %w", err)
