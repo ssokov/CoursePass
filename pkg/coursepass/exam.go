@@ -79,18 +79,10 @@ func (em *ExamManager) Start(ctx context.Context, studentID, courseID int) (Exam
 }
 
 func (em *ExamManager) Question(ctx context.Context, studentID, questionID, examID int) (Question, error) {
-	examData, err := em.repo.OneExam(ctx, &db.ExamSearch{
-		ID:        &examID,
-		StudentID: &studentID,
-	})
+	exam, err := em.getExamByStudent(ctx, em.repo, studentID, examID)
 	if err != nil {
-		return Question{}, fmt.Errorf("failed get exam: %w", err)
+		return Question{}, err
 	}
-	if examData == nil {
-		return Question{}, ErrExamNotFound
-	}
-
-	exam := newExamState(*examData)
 	if exam.Status != ExamStatusInProgress {
 		return Question{}, ErrExamNotInProgress
 	}
@@ -98,18 +90,27 @@ func (em *ExamManager) Question(ctx context.Context, studentID, questionID, exam
 		return Question{}, ErrQuestionNotInExam
 	}
 
-	questionData, err := em.repo.OneQuestion(ctx, &db.QuestionSearch{
-		ID:       &questionID,
-		CourseID: &exam.CourseID,
-	}, em.repo.FullQuestion())
+	question, err := em.getQuestionForExam(ctx, em.repo, exam.CourseID, questionID)
 	if err != nil {
-		return Question{}, fmt.Errorf("failed get question: %w", err)
-	}
-	if questionData == nil {
-		return Question{}, ErrQuestionNotFound
+		return Question{}, err
 	}
 
-	return newQuestion(*questionData, em.mediaWebPath), nil
+	return question, nil
+}
+
+func (em *ExamManager) getExamByStudent(ctx context.Context, repo db.CoursesRepo, studentID, examID int) (ExamState, error) {
+	examData, err := repo.OneExam(ctx, &db.ExamSearch{
+		ID:        &examID,
+		StudentID: &studentID,
+	})
+	if err != nil {
+		return ExamState{}, fmt.Errorf("failed get exam: %w", err)
+	}
+	if examData == nil {
+		return ExamState{}, ErrExamNotFound
+	}
+
+	return newExamState(*examData), nil
 }
 
 func (em *ExamManager) SaveAnswer(ctx context.Context, studentID, examID, questionID int, optionIDs []int) error {
@@ -141,6 +142,25 @@ func (em *ExamManager) SaveAnswer(ctx context.Context, studentID, examID, questi
 	return nil
 }
 
+func (em *ExamManager) getQuestionForExam(ctx context.Context, repo db.CoursesRepo, courseID, questionID int) (Question, error) {
+	questionData, err := repo.OneQuestion(
+		ctx,
+		&db.QuestionSearch{
+			ID:       &questionID,
+			CourseID: &courseID,
+		},
+		repo.FullQuestion(),
+	)
+	if err != nil {
+		return Question{}, fmt.Errorf("failed get question: %w", err)
+	}
+	if questionData == nil {
+		return Question{}, ErrQuestionNotFound
+	}
+
+	return newQuestion(*questionData, em.mediaWebPath), nil
+}
+
 func (em *ExamManager) getExamForAnswer(ctx context.Context, txRepo db.CoursesRepo, studentID, examID, questionID int) (ExamState, error) {
 	examData, err := txRepo.OneExam(ctx, &db.ExamSearch{
 		ID:        &examID,
@@ -154,11 +174,8 @@ func (em *ExamManager) getExamForAnswer(ctx context.Context, txRepo db.CoursesRe
 	}
 
 	exam := newExamState(*examData)
-	if exam.Status != ExamStatusInProgress {
-		return ExamState{}, ErrExamNotInProgress
-	}
-	if !slices.Contains(exam.QuestionIDs, questionID) {
-		return ExamState{}, ErrQuestionNotInExam
+	if err = validateExamQuestionAccess(exam, questionID); err != nil {
+		return ExamState{}, err
 	}
 
 	answerByQuestionID := ExamAnswers(exam.Answers).IndexByQuestionID()
@@ -184,6 +201,17 @@ func (em *ExamManager) getQuestionForAnswer(ctx context.Context, txRepo db.Cours
 	return newQuestion(*questionData, em.mediaWebPath), nil
 }
 
+func validateExamQuestionAccess(exam ExamState, questionID int) error {
+	if exam.Status != ExamStatusInProgress {
+		return ErrExamNotInProgress
+	}
+	if !slices.Contains(exam.QuestionIDs, questionID) {
+		return ErrQuestionNotInExam
+	}
+
+	return nil
+}
+
 func validateAnswerOptions(question Question, optionIDs []int) error {
 	allowedOptionByID := QuestionOptions(question.Options).IndexByOptionID()
 	for _, id := range optionIDs {
@@ -204,54 +232,19 @@ func (em *ExamManager) Submit(ctx context.Context, studentID, examID int) (ExamR
 
 	err := em.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
 		txRepo := em.repo.WithTransaction(tx)
-		examData, err := txRepo.OneExam(ctx, &db.ExamSearch{
-			ID:        &examID,
-			StudentID: &studentID,
-		})
+		exam, err := em.getExamForSubmit(ctx, txRepo, studentID, examID)
 		if err != nil {
-			return fmt.Errorf("failed get exam: %w", err)
-		}
-		if examData == nil {
-			return ErrExamNotFound
-		}
-		exam := newExamState(*examData)
-		if exam.Status != ExamStatusInProgress {
-			return ErrExamNotInProgress
+			return err
 		}
 
-		questionIDs := exam.QuestionIDs
-		totalQuestions := len(questionIDs)
-		if totalQuestions == 0 {
-			return ErrNoQuestions
-		}
-
-		questionData, err := txRepo.QuestionsByFilters(
-			ctx,
-			&db.QuestionSearch{IDs: questionIDs},
-			db.PagerNoLimit,
-		)
+		questions, err := em.getQuestionsForSubmit(ctx, txRepo, exam.QuestionIDs)
 		if err != nil {
-			return fmt.Errorf("failed get questions: %w", err)
+			return err
 		}
 
-		questions := newQuestions(questionData, em.mediaWebPath)
-		correctAnswers := countCorrectAnswers(questionIDs, questions, exam.Answers)
-		finalScore := calculateFinalScore(correctAnswers, totalQuestions)
-		status := ExamStatusFailed
-		if finalScore >= passScorePercent {
-			status = ExamStatusPassed
-		}
+		status, correctAnswers, totalQuestions, finalScore := calculateSubmitMetrics(exam, questions)
 		finishedAt := time.Now()
-		if err = em.updateSubmittedExam(
-			ctx,
-			txRepo,
-			exam.ExamID,
-			status,
-			correctAnswers,
-			totalQuestions,
-			finalScore,
-			finishedAt,
-		); err != nil {
+		if err = em.updateSubmittedExam(ctx, txRepo, exam.ExamID, status, correctAnswers, totalQuestions, finalScore, finishedAt); err != nil {
 			return err
 		}
 
@@ -264,6 +257,56 @@ func (em *ExamManager) Submit(ctx context.Context, studentID, examID int) (ExamR
 	}
 
 	return examResult, nil
+}
+
+func (em *ExamManager) getExamForSubmit(ctx context.Context, txRepo db.CoursesRepo, studentID, examID int) (ExamState, error) {
+	examData, err := txRepo.OneExam(ctx, &db.ExamSearch{
+		ID:        &examID,
+		StudentID: &studentID,
+	})
+	if err != nil {
+		return ExamState{}, fmt.Errorf("failed get exam: %w", err)
+	}
+	if examData == nil {
+		return ExamState{}, ErrExamNotFound
+	}
+
+	exam := newExamState(*examData)
+	if exam.Status != ExamStatusInProgress {
+		return ExamState{}, ErrExamNotInProgress
+	}
+
+	return exam, nil
+}
+
+func (em *ExamManager) getQuestionsForSubmit(ctx context.Context, txRepo db.CoursesRepo, questionIDs []int) ([]Question, error) {
+	if len(questionIDs) == 0 {
+		return nil, ErrNoQuestions
+	}
+
+	questionData, err := txRepo.QuestionsByFilters(
+		ctx,
+		&db.QuestionSearch{IDs: questionIDs},
+		db.PagerNoLimit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed get questions: %w", err)
+	}
+
+	return newQuestions(questionData, em.mediaWebPath), nil
+}
+
+func calculateSubmitMetrics(exam ExamState, questions []Question) (string, int, int, int) {
+	totalQuestions := len(exam.QuestionIDs)
+	correctAnswers := countCorrectAnswers(exam.QuestionIDs, questions, exam.Answers)
+	finalScore := calculateFinalScore(correctAnswers, totalQuestions)
+
+	status := ExamStatusFailed
+	if finalScore >= passScorePercent {
+		status = ExamStatusPassed
+	}
+
+	return status, correctAnswers, totalQuestions, finalScore
 }
 
 func (em *ExamManager) MyList(ctx context.Context, studentID, page, pageSize int) ([]ExamSummary, error) {
@@ -334,7 +377,6 @@ func (em *ExamManager) addExam(ctx context.Context, txRepo db.CoursesRepo, cours
 	}
 
 	return examData, nil
-
 }
 
 func isActiveExamUniqueViolation(err error) bool {

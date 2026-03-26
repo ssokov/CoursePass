@@ -22,7 +22,6 @@ var (
 	ErrInvalidOptionIDs   = errors.New("invalid option ids")
 	ErrExamNotUpdated     = errors.New("exam not updated")
 	ErrExamAlreadyStarted = errors.New("can not start two exams at the same time")
-	ExamAllreadyStarted   = ErrExamAlreadyStarted
 )
 
 const (

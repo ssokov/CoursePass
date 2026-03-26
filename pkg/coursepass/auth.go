@@ -52,10 +52,7 @@ func (am *AuthManager) Register(ctx context.Context, login, password, email, fir
 		}
 
 		var addErr error
-		student, addErr = txRepo.AddStudent(
-			ctx,
-			newDBStudent(login, string(passwordHash), firstName, lastName, email),
-		)
+		student, addErr = txRepo.AddStudent(ctx, newDBStudent(login, string(passwordHash), firstName, lastName, email))
 		if addErr != nil {
 			return fmt.Errorf("failed create student: %w", addErr)
 		}
