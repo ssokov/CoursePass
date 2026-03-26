@@ -32,6 +32,13 @@ func NewAuthManager(dbo db.DB, logger embedlog.Logger, authCfg AuthConfig) *Auth
 }
 
 func (am *AuthManager) Register(ctx context.Context, login, password, email, firstName, lastName string) (AuthToken, error) {
+	if err := am.ensureLoginAvailable(ctx, login); err != nil {
+		return AuthToken{}, err
+	}
+	if err := am.ensureEmailAvailable(ctx, email); err != nil {
+		return AuthToken{}, err
+	}
+
 	hash, err := passwordHash(password)
 	if err != nil {
 		return AuthToken{}, err
@@ -71,6 +78,34 @@ func passwordHash(password string) (string, error) {
 func isUniqueConstraintViolation(err error, constraintName string) bool {
 	var pgErr pg.Error
 	return errors.As(err, &pgErr) && pgErr.Field('n') == constraintName
+}
+
+func (am *AuthManager) ensureLoginAvailable(ctx context.Context, login string) error {
+	studentData, err := am.repo.OneStudent(ctx, &db.StudentSearch{
+		Login: &login,
+	})
+	if err != nil {
+		return fmt.Errorf("failed check login: %w", err)
+	}
+	if studentData != nil {
+		return ErrLoginExists
+	}
+
+	return nil
+}
+
+func (am *AuthManager) ensureEmailAvailable(ctx context.Context, email string) error {
+	studentData, err := am.repo.OneStudent(ctx, &db.StudentSearch{
+		Email: &email,
+	})
+	if err != nil {
+		return fmt.Errorf("failed check email: %w", err)
+	}
+	if studentData != nil {
+		return ErrEmailExists
+	}
+
+	return nil
 }
 
 func (am *AuthManager) addStudent(ctx context.Context, login, passwordHash, firstName, lastName, email string) (*db.Student, error) {
