@@ -2,6 +2,7 @@ package coursepass
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"slices"
@@ -28,6 +29,8 @@ const (
 
 	QuestionTypeSingleChoice   = "single_choice"
 	QuestionTypeMultipleChoice = "multiple_choice"
+
+	uxExamActiveStudentCourse = "ux_exams_active_student_course"
 )
 
 func NewExamManager(dbo db.DB, logger embedlog.Logger, mediaWebPath string) *ExamManager {
@@ -331,11 +334,20 @@ func (em *ExamManager) addExam(
 		TotalQuestions: &totalQuestions,
 		Status:         ExamStatusInProgress,
 	})
+	if err != nil && isActiveExamUniqueViolation(err) {
+		return nil, ErrExamAlreadyStarted
+	}
 	if err != nil {
-		return nil, fmt.Errorf("failed create exam: %w", err)
+		return nil, fmt.Errorf("failed add exam: %w", err)
 	}
 
 	return examData, nil
+
+}
+
+func isActiveExamUniqueViolation(err error) bool {
+	var pgErr pg.Error
+	return errors.As(err, &pgErr) && pgErr.Field('n') == uxExamActiveStudentCourse
 }
 
 func (em *ExamManager) updateSubmittedExam(

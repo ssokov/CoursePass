@@ -128,6 +128,26 @@ func TestExamManager_Start(t *testing.T) {
 		require.Error(t, err)
 		assert.ErrorIs(t, err, ErrNoQuestions)
 	})
+
+	t.Run("already started", func(t *testing.T) {
+		// Arrange
+		fx := newExamFixture(t, 1)
+		defer fx.cleanup()
+
+		firstStart, err := fx.manager.Start(t.Context(), fx.student.ID, fx.course.ID)
+		require.NoError(t, err)
+		defer func() {
+			_, deleteErr := fx.repo.DeleteExam(t.Context(), firstStart.ExamID)
+			require.NoError(t, deleteErr)
+		}()
+
+		// Act
+		_, err = fx.manager.Start(t.Context(), fx.student.ID, fx.course.ID)
+
+		// Assert
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrExamAlreadyStarted)
+	})
 }
 
 func TestExamManager_Question_NotInExam(t *testing.T) {

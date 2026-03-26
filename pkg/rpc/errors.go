@@ -52,6 +52,8 @@ func mapRPCError(err error) error {
 			Code:    zenrpc.InvalidParams,
 			Message: "exam is not in progress",
 		}
+	case errors.Is(err, coursepass.ErrExamAlreadyStarted):
+		return invalidParamsError("courseId", "exam already in progress")
 	case errors.Is(err, coursepass.ErrQuestionNotFound):
 		return &zenrpc.Error{
 			Code:    zenrpc.InvalidParams,
