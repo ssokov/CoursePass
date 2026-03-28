@@ -36,7 +36,6 @@ func (es *ExamService) Start(ctx context.Context, courseID int) (*ExamStart, err
 
 	start, err := es.examManager.Start(ctx, studentID, courseID)
 	if err != nil {
-		es.Logger.Error(ctx, "exam start failed", "err", err)
 		return nil, mapRPCError(err)
 	}
 
@@ -58,7 +57,6 @@ func (es *ExamService) GetQuestion(ctx context.Context, examID, questionID int) 
 
 	question, err := es.examManager.Question(ctx, studentID, questionID, examID)
 	if err != nil {
-		es.Logger.Error(ctx, "exam question failed", "err", err)
 		return nil, mapRPCError(err)
 	}
 
@@ -83,7 +81,6 @@ func (es *ExamService) Answer(ctx context.Context, examID, questionID int, optio
 
 	err := es.examManager.SaveAnswer(ctx, studentID, examID, questionID, optionIDs)
 	if err != nil {
-		es.Logger.Error(ctx, "exam save failed", "err", err)
 		return mapRPCError(err)
 	}
 
@@ -102,7 +99,6 @@ func (es *ExamService) Submit(ctx context.Context, examID int) (*ExamResult, err
 
 	result, err := es.examManager.Submit(ctx, studentID, examID)
 	if err != nil {
-		es.Logger.Error(ctx, "exam submit failed", "err", err)
 		return nil, mapRPCError(err)
 	}
 
@@ -124,7 +120,6 @@ func (es *ExamService) History(ctx context.Context, page, pageSize int) ([]*Exam
 
 	exams, err := es.examManager.MyList(ctx, studentID, page, pageSize)
 	if err != nil {
-		es.Logger.Error(ctx, "exam history failed", "err", err)
 		return nil, mapRPCError(err)
 	}
 
