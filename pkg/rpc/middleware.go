@@ -42,7 +42,7 @@ func authMiddleware(authCfg coursepass.AuthConfig, logger embedlog.Logger) zenrp
 				)
 			}
 
-			studentID, err := coursepass.ValidateJWT(authCfg, token)
+			studentID, err := coursepass.ValidateJWT(authCfg.JWTSecret, token)
 			if err != nil {
 				logger.Error(ctx, "auth middleware: token validation failed", "err", err)
 				return zenrpc.NewResponseError(

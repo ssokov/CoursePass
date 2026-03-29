@@ -26,14 +26,6 @@ func newStudent(student *db.Student) *Student {
 	return &s
 }
 
-func newStudentAuth(student db.Student) studentAuth {
-	return studentAuth{
-		StudentID:    student.ID,
-		Login:        student.Login,
-		PasswordHash: student.PasswordHash,
-	}
-}
-
 func newAuthToken(token string, expiresIn int) *AuthToken {
 	return &AuthToken{
 		AccessToken: token,

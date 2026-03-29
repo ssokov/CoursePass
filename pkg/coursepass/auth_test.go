@@ -92,7 +92,7 @@ func TestAuthManager_Register_Success(t *testing.T) {
 	assert.Equal(t, fx.authCfg.JWTTTLSeconds, token.ExpiresIn)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(fx.authCfg, token.AccessToken)
+	studentID, err := ValidateJWT(fx.authCfg.JWTSecret, token.AccessToken)
 	require.NoError(t, err)
 	assert.Positive(t, studentID)
 
@@ -191,7 +191,7 @@ func TestAuthManager_Login_Success(t *testing.T) {
 	assert.NotEmpty(t, token.AccessToken)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(fx.authCfg, token.AccessToken)
+	studentID, err := ValidateJWT(fx.authCfg.JWTSecret, token.AccessToken)
 	require.NoError(t, err)
 	assert.Equal(t, student.ID, studentID)
 }

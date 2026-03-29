@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func generateJWT(authCfg AuthConfig, studentID int, login string) (string, int, error) {
+func generateJWT(jwtSecretValue string, jwtTTLSeconds int, studentID int, login string) (string, int, error) {
 	header := newTokenHeader()
 
 	now := time.Now()
-	ttl := tokenTTLSeconds(authCfg)
+	ttl := tokenTTLSeconds(jwtTTLSeconds)
 	exp := now.Unix() + int64(ttl)
 	claims := newTokenClaims(studentID, login, now.Unix(), exp)
 
@@ -30,19 +30,19 @@ func generateJWT(authCfg AuthConfig, studentID int, login string) (string, int, 
 	encodedHeader := base64.RawURLEncoding.EncodeToString(headerRaw)
 	encodedClaims := base64.RawURLEncoding.EncodeToString(claimsRaw)
 	unsigned := encodedHeader + "." + encodedClaims
-	signature := signHS256(unsigned, jwtSecret(authCfg))
+	signature := signHS256(unsigned, jwtSecret(jwtSecretValue))
 
 	return unsigned + "." + signature, ttl, nil
 }
 
-func ValidateJWT(authCfg AuthConfig, token string) (int, error) {
+func ValidateJWT(jwtSecretValue, token string) (int, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return 0, ErrInvalidToken
 	}
 
 	unsigned := parts[0] + "." + parts[1]
-	expectedSig := signHS256(unsigned, jwtSecret(authCfg))
+	expectedSig := signHS256(unsigned, jwtSecret(jwtSecretValue))
 	if !hmac.Equal([]byte(parts[2]), []byte(expectedSig)) {
 		return 0, ErrInvalidToken
 	}
@@ -138,18 +138,17 @@ func numberFieldAsInt64(v any) (int64, error) {
 	}
 }
 
-func jwtSecret(authCfg AuthConfig) []byte {
-	secret := authCfg.JWTSecret
+func jwtSecret(secret string) []byte {
 	if secret == "" {
 		secret = "coursepass-dev-secret"
 	}
 	return []byte(secret)
 }
 
-func tokenTTLSeconds(authCfg AuthConfig) int {
-	if authCfg.JWTTTLSeconds <= 0 {
+func tokenTTLSeconds(ttlSeconds int) int {
+	if ttlSeconds <= 0 {
 		return defaultTokenTTLSeconds
 	}
 
-	return authCfg.JWTTTLSeconds
+	return ttlSeconds
 }

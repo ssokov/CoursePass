@@ -68,12 +68,6 @@ type tokenClaims struct {
 	Iat   int64
 }
 
-type studentAuth struct {
-	StudentID    int
-	Login        string
-	PasswordHash string
-}
-
 type Student db.Student
 type Course db.Course
 type Exam db.Exam
