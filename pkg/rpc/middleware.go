@@ -2,8 +2,13 @@ package rpc
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"strconv"
 	"strings"
+	"time"
 
 	"courses/pkg/coursepass"
 
@@ -17,6 +22,13 @@ const (
 	studentKey   studentCtx = "rpc.student.id"
 	bearerPrefix string     = "Bearer "
 )
+
+type tokenClaims struct {
+	Sub   string
+	Login string
+	Exp   int64
+	Iat   int64
+}
 
 func authMiddleware(authCfg coursepass.AuthConfig, logger embedlog.Logger) zenrpc.MiddlewareFunc {
 	return func(h zenrpc.InvokeFunc) zenrpc.InvokeFunc {
@@ -42,7 +54,7 @@ func authMiddleware(authCfg coursepass.AuthConfig, logger embedlog.Logger) zenrp
 				)
 			}
 
-			studentID, err := coursepass.ValidateJWT(authCfg.JWTSecret, token)
+			studentID, err := validateJWT(authCfg.JWTSecret, token)
 			if err != nil {
 				logger.Error(ctx, "auth middleware: token validation failed", "err", err)
 				return zenrpc.NewResponseError(
@@ -84,4 +96,98 @@ func bearerTokenFromContext(ctx context.Context) (string, error) {
 	}
 
 	return token, nil
+}
+
+func validateJWT(jwtSecretValue, token string) (int, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return 0, ErrInvalidToken
+	}
+
+	unsigned := parts[0] + "." + parts[1]
+	expectedSig := signHS256(unsigned, jwtSecret(jwtSecretValue))
+	if !hmac.Equal([]byte(parts[2]), []byte(expectedSig)) {
+		return 0, ErrInvalidToken
+	}
+
+	payloadRaw, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return 0, ErrInvalidToken
+	}
+
+	claims, err := unmarshalTokenClaims(payloadRaw)
+	if err != nil {
+		return 0, ErrInvalidToken
+	}
+
+	if claims.Sub == "" || claims.Exp <= 0 {
+		return 0, ErrInvalidToken
+	}
+	if time.Now().Unix() >= claims.Exp {
+		return 0, ErrInvalidToken
+	}
+
+	studentID, err := strconv.Atoi(claims.Sub)
+	if err != nil || studentID <= 0 {
+		return 0, ErrInvalidToken
+	}
+
+	return studentID, nil
+}
+
+func signHS256(unsignedToken string, secret []byte) string {
+	mac := hmac.New(sha256.New, secret)
+	_, _ = mac.Write([]byte(unsignedToken))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func unmarshalTokenClaims(data []byte) (tokenClaims, error) {
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return tokenClaims{}, err
+	}
+
+	sub, ok := raw["sub"].(string)
+	if !ok || sub == "" {
+		return tokenClaims{}, ErrInvalidToken
+	}
+
+	login, _ := raw["login"].(string)
+
+	exp, err := numberFieldAsInt64(raw["exp"])
+	if err != nil {
+		return tokenClaims{}, err
+	}
+
+	iat, err := numberFieldAsInt64(raw["iat"])
+	if err != nil {
+		return tokenClaims{}, err
+	}
+
+	return tokenClaims{
+		Sub:   sub,
+		Login: login,
+		Exp:   exp,
+		Iat:   iat,
+	}, nil
+}
+
+func jwtSecret(secret string) []byte {
+	if secret == "" {
+		secret = "coursepass-dev-secret"
+	}
+	return []byte(secret)
+}
+
+func numberFieldAsInt64(v any) (int64, error) {
+	switch n := v.(type) {
+	case float64:
+		return int64(n), nil
+	case int64:
+		return n, nil
+	case int:
+		return int64(n), nil
+	default:
+		return 0, ErrInvalidToken
+	}
 }

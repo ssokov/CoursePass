@@ -2,8 +2,13 @@ package coursepass
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"courses/pkg/db"
 
@@ -170,10 +175,72 @@ func (am *AuthManager) newTokenForStudent(student *Student) (*AuthToken, error) 
 		return nil, ErrInvalidCredentials
 	}
 
-	token, expiresIn, err := generateJWT(am.auth.JWTSecret, am.auth.JWTTTLSeconds, student.ID, student.Login)
+	token, expiresIn, err := am.generateJWT(am.auth.JWTSecret, am.auth.JWTTTLSeconds, student.ID, student.Login)
 	if err != nil {
 		return nil, fmt.Errorf("failed create JWT: %w", err)
 	}
 
 	return newAuthToken(token, expiresIn), nil
+}
+
+func (am *AuthManager) generateJWT(jwtSecretValue string, jwtTTLSeconds int, studentID int, login string) (string, int, error) {
+	header := newTokenHeader()
+
+	now := time.Now()
+	ttl := am.tokenTTLSeconds(jwtTTLSeconds)
+	exp := now.Unix() + int64(ttl)
+	claims := newTokenClaims(studentID, login, now.Unix(), exp)
+
+	headerRaw, err := am.marshalTokenHeader(header)
+	if err != nil {
+		return "", 0, err
+	}
+	claimsRaw, err := am.marshalTokenClaims(claims)
+	if err != nil {
+		return "", 0, err
+	}
+
+	encodedHeader := base64.RawURLEncoding.EncodeToString(headerRaw)
+	encodedClaims := base64.RawURLEncoding.EncodeToString(claimsRaw)
+	unsigned := encodedHeader + "." + encodedClaims
+	signature := am.signHS256(unsigned, am.jwtSecret(jwtSecretValue))
+
+	return unsigned + "." + signature, ttl, nil
+}
+
+func (am *AuthManager) signHS256(unsignedToken string, secret []byte) string {
+	mac := hmac.New(sha256.New, secret)
+	_, _ = mac.Write([]byte(unsignedToken))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
+func (am *AuthManager) marshalTokenClaims(c tokenClaims) ([]byte, error) {
+	return json.Marshal(map[string]any{
+		"sub":   c.Sub,
+		"login": c.Login,
+		"exp":   c.Exp,
+		"iat":   c.Iat,
+	})
+}
+
+func (am *AuthManager) marshalTokenHeader(h tokenHeader) ([]byte, error) {
+	return json.Marshal(map[string]any{
+		"alg": h.Alg,
+		"typ": h.Typ,
+	})
+}
+
+func (am *AuthManager) jwtSecret(secret string) []byte {
+	if secret == "" {
+		secret = "coursepass-dev-secret"
+	}
+	return []byte(secret)
+}
+
+func (am *AuthManager) tokenTTLSeconds(ttlSeconds int) int {
+	if ttlSeconds <= 0 {
+		return defaultTokenTTLSeconds
+	}
+
+	return ttlSeconds
 }

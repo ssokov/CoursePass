@@ -40,7 +40,6 @@ func (as *AuthService) Register(ctx context.Context, login, password, email, fir
 
 func (as *AuthService) Login(ctx context.Context, login, password string) (*Token, error) {
 	if err := as.validateLoginRequest(login, password); err != nil {
-		as.Logger.Error(ctx, "auth login invalid params", "err", err)
 		return nil, err
 	}
 
