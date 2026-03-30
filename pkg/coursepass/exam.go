@@ -41,34 +41,34 @@ func NewExamManager(dbo db.DB, logger embedlog.Logger, _ string) *ExamManager {
 }
 
 func (em *ExamManager) Start(ctx context.Context, studentID, courseID int) (*Exam, error) {
-	//var exam *Exam
-	//
-	//err := em.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
-	//	txRepo := em.repo.WithTransaction(tx)
-	//
-	//	if err := em.getAvailableCourse(ctx, txRepo, courseID, time.Now()); err != nil {
-	//		return err
-	//	}
-	//
-	//	questions, err := em.getCourseQuestions(ctx, txRepo, courseID)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	examData, err := em.addExam(ctx, txRepo, courseID, studentID, Questions(questions).IDs())
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	exam = NewExam(examData)
-	//
-	//	return nil
-	//})
-	//if err != nil {
-	//	return nil, err
-	//}
+	var exam *Exam
 
-	return nil, nil
+	err := em.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
+		txRepo := em.repo.WithTransaction(tx)
+
+		if err := em.getAvailableCourse(ctx, txRepo, courseID, time.Now()); err != nil {
+			return err
+		}
+
+		questions, err := em.getCourseQuestions(ctx, txRepo, courseID)
+		if err != nil {
+			return err
+		}
+
+		examData, err := em.addExam(ctx, txRepo, courseID, studentID, questions.IDs())
+		if err != nil {
+			return err
+		}
+
+		exam = NewExam(examData)
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return exam, nil
 }
 
 func (em *ExamManager) Question(ctx context.Context, studentID, questionID, examID int) (*Question, error) {
@@ -297,7 +297,7 @@ func (em *ExamManager) getAvailableCourse(ctx context.Context, txRepo db.Courses
 	return nil
 }
 
-func (em *ExamManager) getCourseQuestions(ctx context.Context, txRepo db.CoursesRepo, courseID int) ([]Question, error) {
+func (em *ExamManager) getCourseQuestions(ctx context.Context, txRepo db.CoursesRepo, courseID int) (Questions, error) {
 	questions, err := txRepo.QuestionsByFilters(
 		ctx,
 		&db.QuestionSearch{CourseID: &courseID},
@@ -311,7 +311,7 @@ func (em *ExamManager) getCourseQuestions(ctx context.Context, txRepo db.Courses
 		return nil, ErrNoQuestions
 	}
 
-	return []Question(NewQuestions(questions)), nil
+	return NewQuestions(questions), nil
 }
 
 func (em *ExamManager) addExam(ctx context.Context, txRepo db.CoursesRepo, courseID, studentID int, questionIDs []int) (*db.Exam, error) {
@@ -416,30 +416,29 @@ func isActiveExamUniqueViolation(err error) bool {
 	return errors.As(err, &pgErr) && pgErr.Field('n') == uxExamActiveStudentCourse
 }
 
-func countCorrectAnswers(questionIDs []int, questions []Question, answers ExamAnswers) int {
-	//questionByID := Questions(questions).Index()
-	//answerByQuestionID := answers.IndexByQuestionID()
-	//
-	//var correctAnswers int
-	//for _, questionID := range questionIDs {
-	//	question, ok := questionByID[questionID]
-	//	if !ok {
-	//		continue
-	//	}
-	//
-	//	correctOptionIDs := getCorrectOptionIDs(QuestionOptions(question.Options))
-	//	answer, hasAnswer := answerByQuestionID[questionID]
-	//	if !hasAnswer {
-	//		continue
-	//	}
-	//
-	//	if equalOptionIDSets(correctOptionIDs, answer.OptionIDs) {
-	//		correctAnswers++
-	//	}
-	//}
+func countCorrectAnswers(questionIDs []int, questions Questions, answers ExamAnswers) int {
+	questionByID := questions.Index()
+	answerByQuestionID := answers.IndexByQuestionID()
 
-	//return nil
-	return len(questionIDs) + len(questions) + len(answers)
+	var correctAnswers int
+	for _, questionID := range questionIDs {
+		question, ok := questionByID[questionID]
+		if !ok {
+			continue
+		}
+
+		correctOptionIDs := getCorrectOptionIDs(QuestionOptions(question.Options))
+		answer, hasAnswer := answerByQuestionID[questionID]
+		if !hasAnswer {
+			continue
+		}
+
+		if equalOptionIDSets(correctOptionIDs, answer.OptionIDs) {
+			correctAnswers++
+		}
+	}
+
+	return correctAnswers
 }
 
 func getCorrectOptionIDs(options QuestionOptions) []int {

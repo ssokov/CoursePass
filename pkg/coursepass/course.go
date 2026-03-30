@@ -54,7 +54,7 @@ func (cm *CourseManager) courseByID(ctx context.Context, courseID int) (*Course,
 		ID: &courseID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed get coursepass: %w", err)
+		return nil, fmt.Errorf("failed get course: %w", err)
 	}
 	if courseData == nil {
 		return nil, ErrCourseNotFound

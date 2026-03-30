@@ -58,8 +58,6 @@ func (cs *CoursesService) List(ctx context.Context, page, pageSize int) ([]Cours
 	return newCourseSummaries(courses), nil
 }
 
-// zenrpc:-32602 invalid params
-//
 //zenrpc:404 not found
 func (cs *CoursesService) ByID(ctx context.Context, courseID int) (*Course, error) {
 	if courseID < 1 {

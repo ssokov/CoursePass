@@ -119,17 +119,3 @@ func NewQuestion(in *db.Question) *Question {
 		Question: *in,
 	}
 }
-
-type VfsFile struct {
-	db.VfsFile
-}
-
-func NewVfsFile(in *db.VfsFile) *VfsFile {
-	if in == nil {
-		return nil
-	}
-
-	return &VfsFile{
-		VfsFile: *in,
-	}
-}

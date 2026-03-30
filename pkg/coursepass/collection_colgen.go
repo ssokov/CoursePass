@@ -9,4 +9,22 @@ func NewCourses(in []db.Course) []Course { return MapP(in, NewCourse) }
 
 func NewExams(in []db.Exam) []Exam { return MapP(in, NewExam) }
 
-func NewQuestions(in []db.Question) []Question { return MapP(in, NewQuestion) }
+type Questions []Question
+
+func (ll Questions) IDs() []int {
+	r := make([]int, len(ll))
+	for i := range ll {
+		r[i] = ll[i].ID
+	}
+	return r
+}
+
+func (ll Questions) Index() map[int]Question {
+	r := make(map[int]Question, len(ll))
+	for i := range ll {
+		r[ll[i].ID] = ll[i]
+	}
+	return r
+}
+
+func NewQuestions(in []db.Question) Questions { return MapP(in, NewQuestion) }
