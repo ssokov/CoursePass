@@ -25,13 +25,12 @@ func NewAuthService(dbc db.DB, logger embedlog.Logger, jwtSecret string, jwtTTLS
 	}
 }
 
-// zenrpc:-32602 invalid params
-func (as *AuthService) Register(ctx context.Context, login, password, email, firstName, lastName string) (*Token, error) {
-	if err := as.validateRegisterRequest(login, password, email, firstName, lastName); err != nil {
+func (as *AuthService) Register(ctx context.Context, student RegisterStudent) (*Token, error) {
+	if err := as.validateRegisterRequest(student.Login, student.Password, student.Email, student.FirstName, student.LastName); err != nil {
 		return nil, err
 	}
 
-	token, err := as.authManager.Register(ctx, login, password, email, firstName, lastName)
+	token, err := as.authManager.Register(ctx, student.Login, student.Password, student.Email, student.FirstName, student.LastName)
 	if err != nil {
 		return nil, newInternalError(err)
 	}
@@ -39,7 +38,6 @@ func (as *AuthService) Register(ctx context.Context, login, password, email, fir
 	return newToken(token), nil
 }
 
-// zenrpc:-32602 invalid params
 func (as *AuthService) Login(ctx context.Context, login, password string) (*Token, error) {
 	if err := as.validateLoginRequest(login, password); err != nil {
 		return nil, err

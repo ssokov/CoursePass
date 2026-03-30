@@ -14,6 +14,14 @@ type Student struct {
 	LastName  string `json:"lastName"`
 }
 
+type RegisterStudent struct {
+	Login     string `json:"login"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+}
+
 type Course struct {
 	CourseID      int     `json:"courseId"`
 	Title         string  `json:"title"`
