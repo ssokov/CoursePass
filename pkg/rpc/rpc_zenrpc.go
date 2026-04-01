@@ -11,13 +11,15 @@ import (
 )
 
 var RPC = struct {
-	AuthService    struct{ Register, Login string }
+	AuthService    struct{ ValidateStudent, RegisterStudent, ValidateStudentLogin, Login string }
 	CoursesService struct{ Me, List, ByID string }
 	ExamService    struct{ Start, GetQuestion, Answer, Submit, History string }
 }{
-	AuthService: struct{ Register, Login string }{
-		Register: "register",
-		Login:    "login",
+	AuthService: struct{ ValidateStudent, RegisterStudent, ValidateStudentLogin, Login string }{
+		ValidateStudent:      "validatestudent",
+		RegisterStudent:      "registerstudent",
+		ValidateStudentLogin: "validatestudentlogin",
+		Login:                "login",
 	},
 	CoursesService: struct{ Me, List, ByID string }{
 		Me:   "me",
@@ -36,27 +38,109 @@ var RPC = struct {
 func (AuthService) SMD() smd.ServiceInfo {
 	return smd.ServiceInfo{
 		Methods: map[string]smd.Service{
-			"Register": {
+			"ValidateStudent": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name: "login",
-						Type: smd.String,
+						Name:     "in",
+						Type:     smd.Object,
+						TypeName: "StudentDraft",
+						Properties: smd.PropertyList{
+							{
+								Name: "login",
+								Type: smd.String,
+							},
+							{
+								Name: "email",
+								Type: smd.String,
+							},
+							{
+								Name: "password",
+								Type: smd.String,
+							},
+							{
+								Name: "firstName",
+								Type: smd.String,
+							},
+							{
+								Name: "lastName",
+								Type: smd.String,
+							},
+						},
 					},
-					{
-						Name: "password",
-						Type: smd.String,
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Array,
+					TypeName: "[]FieldError",
+					Items: map[string]string{
+						"$ref": "#/definitions/FieldError",
 					},
-					{
-						Name: "email",
-						Type: smd.String,
+					Definitions: map[string]smd.Definition{
+						"FieldError": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "field",
+									Type: smd.String,
+								},
+								{
+									Name: "error",
+									Type: smd.String,
+								},
+								{
+									Name:     "constraint",
+									Optional: true,
+									Ref:      "#/definitions/FieldErrorConstraint",
+									Type:     smd.Object,
+								},
+							},
+						},
+						"FieldErrorConstraint": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "max",
+									Type: smd.Integer,
+								},
+								{
+									Name: "min",
+									Type: smd.Integer,
+								},
+							},
+						},
 					},
+				},
+				Errors: map[int]string{
+					500: "internal error",
+				},
+			},
+			"RegisterStudent": {
+				Parameters: []smd.JSONSchema{
 					{
-						Name: "firstName",
-						Type: smd.String,
-					},
-					{
-						Name: "lastName",
-						Type: smd.String,
+						Name:     "in",
+						Type:     smd.Object,
+						TypeName: "StudentDraft",
+						Properties: smd.PropertyList{
+							{
+								Name: "login",
+								Type: smd.String,
+							},
+							{
+								Name: "email",
+								Type: smd.String,
+							},
+							{
+								Name: "password",
+								Type: smd.String,
+							},
+							{
+								Name: "firstName",
+								Type: smd.String,
+							},
+							{
+								Name: "lastName",
+								Type: smd.String,
+							},
+						},
 					},
 				},
 				Returns: smd.JSONSchema{
@@ -79,18 +163,89 @@ func (AuthService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
+					409: "login or email exists",
+					500: "internal error",
+				},
+			},
+			"ValidateStudentLogin": {
+				Parameters: []smd.JSONSchema{
+					{
+						Name:     "in",
+						Type:     smd.Object,
+						TypeName: "StudentLogin",
+						Properties: smd.PropertyList{
+							{
+								Name: "login",
+								Type: smd.String,
+							},
+							{
+								Name: "password",
+								Type: smd.String,
+							},
+						},
+					},
+				},
+				Returns: smd.JSONSchema{
+					Type:     smd.Array,
+					TypeName: "[]FieldError",
+					Items: map[string]string{
+						"$ref": "#/definitions/FieldError",
+					},
+					Definitions: map[string]smd.Definition{
+						"FieldError": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "field",
+									Type: smd.String,
+								},
+								{
+									Name: "error",
+									Type: smd.String,
+								},
+								{
+									Name:     "constraint",
+									Optional: true,
+									Ref:      "#/definitions/FieldErrorConstraint",
+									Type:     smd.Object,
+								},
+							},
+						},
+						"FieldErrorConstraint": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "max",
+									Type: smd.Integer,
+								},
+								{
+									Name: "min",
+									Type: smd.Integer,
+								},
+							},
+						},
+					},
+				},
+				Errors: map[int]string{
+					500: "internal error",
 				},
 			},
 			"Login": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name: "login",
-						Type: smd.String,
-					},
-					{
-						Name: "password",
-						Type: smd.String,
+						Name:     "in",
+						Type:     smd.Object,
+						TypeName: "StudentLogin",
+						Properties: smd.PropertyList{
+							{
+								Name: "login",
+								Type: smd.String,
+							},
+							{
+								Name: "password",
+								Type: smd.String,
+							},
+						},
 					},
 				},
 				Returns: smd.JSONSchema{
@@ -113,7 +268,8 @@ func (AuthService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
+					401: "invalid credentials",
+					500: "internal error",
 				},
 			},
 		},
@@ -126,17 +282,13 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 	var err error
 
 	switch method {
-	case RPC.AuthService.Register:
+	case RPC.AuthService.ValidateStudent:
 		var args = struct {
-			Login     string `json:"login"`
-			Password  string `json:"password"`
-			Email     string `json:"email"`
-			FirstName string `json:"firstName"`
-			LastName  string `json:"lastName"`
+			In StudentDraft `json:"in"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"login", "password", "email", "firstName", "lastName"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -147,16 +299,53 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.Register(ctx, args.Login, args.Password, args.Email, args.FirstName, args.LastName))
+		resp.Set(s.ValidateStudent(ctx, args.In))
+
+	case RPC.AuthService.RegisterStudent:
+		var args = struct {
+			In StudentDraft `json:"in"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.RegisterStudent(ctx, args.In))
+
+	case RPC.AuthService.ValidateStudentLogin:
+		var args = struct {
+			In StudentLogin `json:"in"`
+		}{}
+
+		if zenrpc.IsArray(params) {
+			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		if len(params) > 0 {
+			if err := json.Unmarshal(params, &args); err != nil {
+				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
+			}
+		}
+
+		resp.Set(s.ValidateStudentLogin(ctx, args.In))
 
 	case RPC.AuthService.Login:
 		var args = struct {
-			Login    string `json:"login"`
-			Password string `json:"password"`
+			In StudentLogin `json:"in"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"login", "password"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -167,7 +356,7 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.Login(ctx, args.Login, args.Password))
+		resp.Set(s.Login(ctx, args.In))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)
@@ -211,6 +400,7 @@ func (CoursesService) SMD() smd.ServiceInfo {
 				Errors: map[int]string{
 					401: "invalid token",
 					404: "not found",
+					500: "internal error",
 				},
 			},
 			"List": {
@@ -265,6 +455,9 @@ func (CoursesService) SMD() smd.ServiceInfo {
 						},
 					},
 				},
+				Errors: map[int]string{
+					500: "internal error",
+				},
 			},
 			"ByID": {
 				Parameters: []smd.JSONSchema{
@@ -312,8 +505,8 @@ func (CoursesService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
-					404:    "not found",
+					404: "not found",
+					500: "internal error",
 				},
 			},
 		},
@@ -413,8 +606,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
-					401:    "invalid token",
+					401: "invalid token",
+					404: "not found",
+					409: "exam conflict",
+					500: "internal error",
 				},
 			},
 			"GetQuestion": {
@@ -475,8 +670,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
-					401:    "invalid token",
+					401: "invalid token",
+					404: "not found",
+					409: "exam conflict",
+					500: "internal error",
 				},
 			},
 			"Answer": {
@@ -499,8 +696,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
-					401:    "invalid token",
+					401: "invalid token",
+					404: "not found",
+					409: "exam conflict",
+					500: "internal error",
 				},
 			},
 			"Submit": {
@@ -538,8 +737,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 					},
 				},
 				Errors: map[int]string{
-					-32602: "invalid params",
-					401:    "invalid token",
+					401: "invalid token",
+					404: "not found",
+					409: "exam conflict",
+					500: "internal error",
 				},
 			},
 			"History": {
@@ -589,6 +790,7 @@ func (ExamService) SMD() smd.ServiceInfo {
 				},
 				Errors: map[int]string{
 					401: "invalid token",
+					500: "internal error",
 				},
 			},
 		},

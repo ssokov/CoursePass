@@ -28,3 +28,5 @@ func (ll Questions) Index() map[int]Question {
 }
 
 func NewQuestions(in []db.Question) Questions { return MapP(in, NewQuestion) }
+
+func NewQuestionOptions(in []db.QuestionOption) []QuestionOption { return MapP(in, NewQuestionOption) }

@@ -1,9 +1,10 @@
-package coursepass
+package exam
 
 import (
 	"testing"
 	"time"
 
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 	dbtest "courses/pkg/db/test"
 
@@ -13,7 +14,7 @@ import (
 
 type examFixture struct {
 	dbo       db.DB
-	manager   *ExamManager
+	manager   *Manager
 	repo      db.CoursesRepo
 	student   *db.Student
 	course    *db.Course
@@ -25,7 +26,7 @@ func newExamFixture(t *testing.T, questionCount int) examFixture {
 	t.Helper()
 
 	dbo, logger := dbtest.Setup(t)
-	manager := NewExamManager(dbo, logger, "/media/")
+	manager := NewManager(dbo, logger, "/media/")
 	repo := db.NewCoursesRepo(dbo)
 
 	var cleanups []func()
@@ -126,7 +127,7 @@ func TestExamManager_Start(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrNoQuestions)
+		assert.ErrorIs(t, err, coursepass.ErrNoQuestions)
 	})
 
 	t.Run("already started", func(t *testing.T) {
@@ -146,7 +147,7 @@ func TestExamManager_Start(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrExamAlreadyStarted)
+		assert.ErrorIs(t, err, coursepass.ErrExamAlreadyStarted)
 	})
 }
 
@@ -167,7 +168,7 @@ func TestExamManager_Question_NotInExam(t *testing.T) {
 
 	// Assert
 	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrQuestionNotInExam)
+	assert.ErrorIs(t, err, coursepass.ErrQuestionNotInExam)
 }
 
 func TestExamManager_SaveAnswer_InvalidOptionIDs(t *testing.T) {
@@ -187,7 +188,45 @@ func TestExamManager_SaveAnswer_InvalidOptionIDs(t *testing.T) {
 
 	// Assert
 	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrInvalidOptionIDs)
+	assert.ErrorIs(t, err, coursepass.ErrInvalidOptionIDs)
+}
+
+func TestExamManager_SaveAnswer_AnswerUnavailable(t *testing.T) {
+	t.Run("already answered", func(t *testing.T) {
+		fx := newExamFixture(t, 1)
+		defer fx.cleanup()
+
+		start, err := fx.manager.Start(t.Context(), fx.student.ID, fx.course.ID)
+		require.NoError(t, err)
+		defer func() {
+			_, deleteErr := fx.repo.DeleteExam(t.Context(), start.ID)
+			require.NoError(t, deleteErr)
+		}()
+
+		require.NoError(t, fx.manager.SaveAnswer(t.Context(), fx.student.ID, start.ID, fx.questions[0].ID, []int{1}))
+
+		err = fx.manager.SaveAnswer(t.Context(), fx.student.ID, start.ID, fx.questions[0].ID, []int{1})
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, coursepass.ErrAnswerUnavailable)
+	})
+
+	t.Run("question not in exam", func(t *testing.T) {
+		fx := newExamFixture(t, 1)
+		defer fx.cleanup()
+
+		start, err := fx.manager.Start(t.Context(), fx.student.ID, fx.course.ID)
+		require.NoError(t, err)
+		defer func() {
+			_, deleteErr := fx.repo.DeleteExam(t.Context(), start.ID)
+			require.NoError(t, deleteErr)
+		}()
+
+		err = fx.manager.SaveAnswer(t.Context(), fx.student.ID, start.ID, dbtest.NextID(), []int{1})
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, coursepass.ErrAnswerUnavailable)
+	})
 }
 
 func TestExamManager_Submit_Success(t *testing.T) {

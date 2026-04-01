@@ -9,6 +9,8 @@ func newCourseSummaries(in []coursepass.Course) []CourseSummary { return Map(in,
 
 func newExamSummaries(in []coursepass.Exam) []ExamSummary { return Map(in, newExamSummary) }
 
+func newFieldErrors(in []coursepass.FieldError) []FieldError { return Map(in, newFieldError) }
+
 func NewQuestionOptions(in []coursepass.QuestionOption) []QuestionOption {
 	return Map(in, NewQuestionOption)
 }

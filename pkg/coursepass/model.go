@@ -2,7 +2,6 @@ package coursepass
 
 import (
 	"errors"
-	"fmt"
 
 	"courses/pkg/db"
 )
@@ -17,6 +16,7 @@ var (
 	ErrCourseNotFound     = errors.New("coursepass not found")
 	ErrExamNotFound       = errors.New("exam not found")
 	ErrExamNotInProgress  = errors.New("exam is not in progress")
+	ErrAnswerUnavailable  = errors.New("answer unavailable")
 	ErrQuestionNotFound   = errors.New("question not found")
 	ErrQuestionNotInExam  = errors.New("question does not belong to exam")
 	ErrNoQuestions        = errors.New("coursepass has no questions")
@@ -27,10 +27,10 @@ var (
 )
 
 const (
-	defaultTokenTTLSeconds = 24 * 60 * 60
-	bearerTokenType        = "Bearer"
-	jwtAlgHS256            = "HS256"
-	jwtTyp                 = "JWT"
+	DefaultTokenTTLSeconds = 24 * 60 * 60
+	BearerTokenType        = "Bearer"
+	JwtAlgHS256            = "HS256"
+	JwtTyp                 = "JWT"
 )
 
 type AuthToken struct {
@@ -39,29 +39,29 @@ type AuthToken struct {
 	TokenType   string
 }
 
-type ValidationError struct {
-	Field  string
-	Reason string
-}
-
-func (e ValidationError) Error() string {
-	return fmt.Sprintf("validation error: %s %s", e.Field, e.Reason)
-}
-
-func (e ValidationError) Unwrap() error {
-	return ErrValidation
-}
-
-type tokenHeader struct {
+type TokenHeader struct {
 	Alg string
 	Typ string
 }
 
-type tokenClaims struct {
+type TokenClaims struct {
 	Sub   string
 	Login string
 	Exp   int64
 	Iat   int64
+}
+
+type StudentDraft struct {
+	Login     string `json:"login" validate:"required,max=255"`
+	Email     string `json:"email" validate:"required,email,max=255"`
+	Password  string `json:"password" validate:"required,min=6,max=255"`
+	FirstName string `json:"firstName" validate:"required,max=255"`
+	LastName  string `json:"lastName" validate:"required,max=255"`
+}
+
+type StudentLogin struct {
+	Login    string `json:"login" validate:"required,max=255"`
+	Password string `json:"password" validate:"required,max=255"`
 }
 
 type Student struct {
@@ -108,6 +108,9 @@ func NewExam(in *db.Exam) *Exam {
 
 type Question struct {
 	db.Question
+
+	Options   []QuestionOption
+	PhotoFile *VfsFile
 }
 
 func NewQuestion(in *db.Question) *Question {
@@ -116,6 +119,36 @@ func NewQuestion(in *db.Question) *Question {
 	}
 
 	return &Question{
-		Question: *in,
+		Question:  *in,
+		Options:   NewQuestionOptions(in.Options),
+		PhotoFile: NewVfsFile(in.PhotoFile),
+	}
+}
+
+type QuestionOption struct {
+	db.QuestionOption
+}
+
+func NewQuestionOption(in *db.QuestionOption) *QuestionOption {
+	if in == nil {
+		return nil
+	}
+
+	return &QuestionOption{
+		QuestionOption: *in,
+	}
+}
+
+type VfsFile struct {
+	db.VfsFile
+}
+
+func NewVfsFile(in *db.VfsFile) *VfsFile {
+	if in == nil {
+		return nil
+	}
+
+	return &VfsFile{
+		VfsFile: *in,
 	}
 }

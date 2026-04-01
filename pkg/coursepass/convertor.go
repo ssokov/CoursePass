@@ -7,7 +7,7 @@ import (
 	"courses/pkg/db"
 )
 
-func newDBStudent(login, passwordHash, firstName, lastName, email string) *db.Student {
+func NewDBStudent(login, passwordHash, firstName, lastName, email string) *db.Student {
 	return &db.Student{
 		Login:        login,
 		PasswordHash: passwordHash,
@@ -18,23 +18,23 @@ func newDBStudent(login, passwordHash, firstName, lastName, email string) *db.St
 	}
 }
 
-func newAuthToken(token string, expiresIn int) *AuthToken {
+func NewAuthToken(token string, expiresIn int) *AuthToken {
 	return &AuthToken{
 		AccessToken: token,
 		ExpiresIn:   expiresIn,
-		TokenType:   bearerTokenType,
+		TokenType:   BearerTokenType,
 	}
 }
 
-func newTokenHeader() tokenHeader {
-	return tokenHeader{
-		Alg: jwtAlgHS256,
-		Typ: jwtTyp,
+func NewTokenHeader() TokenHeader {
+	return TokenHeader{
+		Alg: JwtAlgHS256,
+		Typ: JwtTyp,
 	}
 }
 
-func newTokenClaims(studentID int, login string, iat, exp int64) tokenClaims {
-	return tokenClaims{
+func NewTokenClaims(studentID int, login string, iat, exp int64) TokenClaims {
+	return TokenClaims{
 		Sub:   strconv.Itoa(studentID),
 		Login: login,
 		Exp:   exp,
@@ -42,14 +42,14 @@ func newTokenClaims(studentID int, login string, iat, exp int64) tokenClaims {
 	}
 }
 
-func newDBExamAnswersUpdate(examID int, answers db.ExamAnswers) *db.Exam {
+func NewDBExamAnswersUpdate(examID int, answers db.ExamAnswers) *db.Exam {
 	return &db.Exam{
 		ID:      examID,
 		Answers: answers,
 	}
 }
 
-func newDBExamSubmitUpdate(examID int, status string, correctAnswers, totalQuestions int, finalScore float64, finishedAt time.Time) *db.Exam {
+func NewDBExamSubmitUpdate(examID int, status string, correctAnswers, totalQuestions int, finalScore float64, finishedAt time.Time) *db.Exam {
 	return &db.Exam{
 		ID:             examID,
 		Status:         status,

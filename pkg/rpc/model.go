@@ -1,5 +1,16 @@
 package rpc
 
+type FieldError struct {
+	Field      string                `json:"field"`
+	Error      string                `json:"error"`
+	Constraint *FieldErrorConstraint `json:"constraint,omitempty"`
+}
+
+type FieldErrorConstraint struct {
+	Max int `json:"max,omitempty"`
+	Min int `json:"min,omitempty"`
+}
+
 type Token struct {
 	AccessToken string `json:"accessToken"`
 	ExpiresIn   int    `json:"expiresIn"`
@@ -14,12 +25,17 @@ type Student struct {
 	LastName  string `json:"lastName"`
 }
 
-type RegisterStudent struct {
+type StudentDraft struct {
 	Login     string `json:"login"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+}
+
+type StudentLogin struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 type Course struct {

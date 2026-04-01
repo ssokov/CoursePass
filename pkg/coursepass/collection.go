@@ -7,6 +7,7 @@ import "courses/pkg/db"
 //colgen:Course:MapP(db.Course)
 //colgen:Exam:MapP(db.Exam)
 //colgen:Question:MapP(db.Question)
+//colgen:QuestionOption:MapP(db.QuestionOption)
 
 func MapP[T, M any](in []T, convert func(*T) *M) []M {
 	out := make([]M, len(in))
@@ -19,36 +20,36 @@ func MapP[T, M any](in []T, convert func(*T) *M) []M {
 
 type ExamAnswers db.ExamAnswers
 
-func (ll ExamAnswers) IndexByQuestionID() map[int]db.ExamAnswer {
-	r := make(map[int]db.ExamAnswer, len(ll))
-	for i := range ll {
-		r[ll[i].QuestionID] = ll[i]
+func (ea ExamAnswers) IndexByQuestionID() map[int]db.ExamAnswer {
+	r := make(map[int]db.ExamAnswer, len(ea))
+	for i := range ea {
+		r[ea[i].QuestionID] = ea[i]
 	}
 	return r
 }
 
-type QuestionOptions db.QuestionOptions
+type QuestionOptions []QuestionOption
 
-func (ll QuestionOptions) OptionIDs() []int {
-	r := make([]int, len(ll))
-	for i := range ll {
-		r[i] = ll[i].OptionID
+func (qo QuestionOptions) OptionIDs() []int {
+	r := make([]int, len(qo))
+	for i := range qo {
+		r[i] = qo[i].OptionID
 	}
 	return r
 }
 
-func (ll QuestionOptions) IndexByOptionID() map[int]db.QuestionOption {
-	r := make(map[int]db.QuestionOption, len(ll))
-	for i := range ll {
-		r[ll[i].OptionID] = ll[i]
+func (qo QuestionOptions) IndexByOptionID() map[int]QuestionOption {
+	r := make(map[int]QuestionOption, len(qo))
+	for i := range qo {
+		r[qo[i].OptionID] = qo[i]
 	}
 	return r
 }
 
-func (ll QuestionOptions) GroupByIsCorrect() map[bool]QuestionOptions {
-	r := make(map[bool]QuestionOptions, len(ll))
-	for i := range ll {
-		r[ll[i].IsCorrect] = append(r[ll[i].IsCorrect], ll[i])
+func (qo QuestionOptions) GroupByIsCorrect() map[bool]QuestionOptions {
+	r := make(map[bool]QuestionOptions, len(qo))
+	for i := range qo {
+		r[qo[i].IsCorrect] = append(r[qo[i].IsCorrect], qo[i])
 	}
 	return r
 }

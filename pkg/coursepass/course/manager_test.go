@@ -1,9 +1,10 @@
-package coursepass
+package course
 
 import (
 	"testing"
 	"time"
 
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 	dbtest "courses/pkg/db/test"
 
@@ -13,7 +14,7 @@ import (
 
 type courseFixture struct {
 	dbo     db.DB
-	manager *CourseManager
+	manager *Manager
 	repo    db.CoursesRepo
 }
 
@@ -24,7 +25,7 @@ func newCourseFixture(t *testing.T) courseFixture {
 
 	return courseFixture{
 		dbo:     dbo,
-		manager: NewCourseManager(dbo, logger),
+		manager: NewManager(dbo, logger),
 		repo:    db.NewCoursesRepo(dbo),
 	}
 }
@@ -81,7 +82,7 @@ func TestCourseManager_Summary_AvailableOnly(t *testing.T) {
 	defer expiredCleanup()
 
 	// Act
-	list, err := fx.manager.Summary(t.Context(), 1, 50)
+	list, err := fx.manager.List(t.Context(), 1, 50)
 
 	// Assert
 	require.NoError(t, err)
@@ -110,7 +111,7 @@ func TestCourseManager_ByID(t *testing.T) {
 
 		// Assert
 		require.NoError(t, err)
-		assert.Equal(t, course.ID, result.CourseID)
+		assert.Equal(t, course.ID, result.ID)
 		assert.Equal(t, course.Title, result.Title)
 		assert.Equal(t, course.Description, result.Description)
 	})
@@ -124,7 +125,7 @@ func TestCourseManager_ByID(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrCourseNotFound)
+		assert.ErrorIs(t, err, coursepass.ErrCourseNotFound)
 	})
 }
 
@@ -152,7 +153,7 @@ func TestCourseManager_Me(t *testing.T) {
 		// Assert
 		require.NoError(t, err)
 		require.NotNil(t, result)
-		assert.Equal(t, student.ID, result.StudentID)
+		assert.Equal(t, student.ID, result.ID)
 		assert.Equal(t, login, result.Login)
 		assert.Equal(t, email, result.Email)
 	})
@@ -166,13 +167,13 @@ func TestCourseManager_Me(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrStudentNotFound)
+		assert.ErrorIs(t, err, coursepass.ErrStudentNotFound)
 	})
 }
 
-func hasCourseID(courses []CourseSummary, courseID int) bool {
+func hasCourseID(courses []coursepass.Course, courseID int) bool {
 	for _, course := range courses {
-		if course.CourseID == courseID {
+		if course.ID == courseID {
 			return true
 		}
 	}

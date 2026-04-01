@@ -2,9 +2,10 @@ package rpc
 
 import (
 	"context"
-	"net/mail"
+	"errors"
 
 	"courses/pkg/coursepass"
+	"courses/pkg/coursepass/auth"
 	"courses/pkg/db"
 
 	"github.com/vmkteam/embedlog"
@@ -15,101 +16,78 @@ type AuthService struct {
 	zenrpc.Service
 	embedlog.Logger
 
-	authManager *coursepass.AuthManager
+	authManager *auth.Manager
 }
 
 func NewAuthService(dbc db.DB, logger embedlog.Logger, jwtSecret string, jwtTTLSeconds int) *AuthService {
 	return &AuthService{
-		authManager: coursepass.NewAuthManager(dbc, logger, jwtSecret, jwtTTLSeconds),
+		authManager: auth.NewManager(dbc, logger, jwtSecret, jwtTTLSeconds),
 		Logger:      logger,
 	}
 }
 
-func (as *AuthService) Register(ctx context.Context, student RegisterStudent) (*Token, error) {
-	if err := as.validateRegisterRequest(student.Login, student.Password, student.Email, student.FirstName, student.LastName); err != nil {
-		return nil, err
+//zenrpc:500 internal error
+func (as *AuthService) ValidateStudent(ctx context.Context, studentDraft StudentDraft) ([]FieldError, error) {
+	err := as.authManager.ValidateStudent(ctx, studentDraft.ToModel())
+	if err != nil {
+		var validationErrs coursepass.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			return newFieldErrors(validationErrs), nil
+		}
+		return nil, newInternalError(err)
 	}
 
-	token, err := as.authManager.Register(ctx, student.Login, student.Password, student.Email, student.FirstName, student.LastName)
+	return nil, nil
+}
+
+//zenrpc:409 login or email exists
+//zenrpc:500 internal error
+func (as *AuthService) RegisterStudent(ctx context.Context, studentDraft StudentDraft) (*Token, error) {
+	token, err := as.authManager.RegisterStudent(ctx, studentDraft.ToModel())
 	if err != nil {
+		if errors.Is(err, coursepass.ErrValidation) {
+			return nil, ErrInvalidParams
+		}
+		if errors.Is(err, coursepass.ErrLoginExists) {
+			return nil, ErrLoginExists
+		}
+		if errors.Is(err, coursepass.ErrEmailExists) {
+			return nil, ErrEmailExists
+		}
 		return nil, newInternalError(err)
 	}
 
 	return newToken(token), nil
 }
 
-func (as *AuthService) Login(ctx context.Context, login, password string) (*Token, error) {
-	if err := as.validateLoginRequest(login, password); err != nil {
-		return nil, err
+//zenrpc:500 internal error
+func (as *AuthService) ValidateStudentLogin(ctx context.Context, studentLogin StudentLogin) ([]FieldError, error) {
+	err := as.authManager.ValidateStudentLogin(ctx, studentLogin.ToModel())
+	if err != nil {
+		var validationErrs coursepass.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			return newFieldErrors(validationErrs), nil
+		}
+		return nil, newInternalError(err)
 	}
 
-	token, err := as.authManager.Login(ctx, login, password)
+	return nil, nil
+}
+
+//zenrpc:401 invalid credentials
+//zenrpc:500 internal error
+func (as *AuthService) Login(ctx context.Context, studentLogin StudentLogin) (*Token, error) {
+	token, err := as.authManager.Login(ctx, studentLogin.ToModel())
 	if err != nil {
+		var validationErrs coursepass.ValidationErrors
+		if errors.As(err, &validationErrs) && len(validationErrs) > 0 {
+			return nil, newInvalidParamsError(validationErrs[0].Field, validationErrs[0].Error)
+		}
+		if errors.Is(err, coursepass.ErrInvalidCredentials) {
+			return nil, ErrInvalidCredentials
+		}
 		return nil, newInternalError(err)
 	}
 
 	return newToken(token), nil
-}
-
-func (as *AuthService) validateRegisterRequest(login, password, email, firstName, lastName string) error {
-	if login == "" {
-		return newInvalidParamsError("login", "is required")
-	}
-	if len([]rune(login)) > 255 {
-		return newInvalidParamsError("login", "max length is 255")
-	}
-
-	if password == "" {
-		return newInvalidParamsError("password", "is required")
-	}
-	if len([]rune(password)) < 6 {
-		return newInvalidParamsError("password", "min length is 6")
-	}
-	if len([]rune(password)) > 255 {
-		return newInvalidParamsError("password", "max length is 255")
-	}
-
-	if email == "" {
-		return newInvalidParamsError("email", "is required")
-	}
-	if len([]rune(email)) > 255 {
-		return newInvalidParamsError("email", "max length is 255")
-	}
-	if _, err := mail.ParseAddress(email); err != nil {
-		return newInvalidParamsError("email", "invalid format")
-	}
-
-	if firstName == "" {
-		return newInvalidParamsError("firstName", "is required")
-	}
-	if len([]rune(firstName)) > 255 {
-		return newInvalidParamsError("firstName", "max length is 255")
-	}
-
-	if lastName == "" {
-		return newInvalidParamsError("lastName", "is required")
-	}
-	if len([]rune(lastName)) > 255 {
-		return newInvalidParamsError("lastName", "max length is 255")
-	}
-
-	return nil
-}
-
-func (as *AuthService) validateLoginRequest(login, password string) error {
-	if login == "" {
-		return newInvalidParamsError("login", "is required")
-	}
-	if len([]rune(login)) > 255 {
-		return newInvalidParamsError("login", "max length is 255")
-	}
-
-	if password == "" {
-		return newInvalidParamsError("password", "is required")
-	}
-	if len([]rune(password)) > 255 {
-		return newInvalidParamsError("password", "max length is 255")
-	}
-
-	return nil
 }

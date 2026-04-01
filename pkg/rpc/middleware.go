@@ -72,6 +72,10 @@ func authMiddleware(jwtSecret string, logger embedlog.Logger) zenrpc.MiddlewareF
 
 func studentIDFromContext(ctx context.Context) (int, bool) {
 	id, ok := ctx.Value(studentKey).(int)
+
+	if id < 0 {
+		return 0, false
+	}
 	return id, ok
 }
 

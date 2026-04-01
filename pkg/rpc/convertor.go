@@ -18,6 +18,31 @@ func formatTimePtr(v *time.Time) *string {
 	return &s
 }
 
+func (in StudentDraft) ToModel() coursepass.StudentDraft {
+	return coursepass.StudentDraft{
+		Login:     in.Login,
+		Email:     in.Email,
+		Password:  in.Password,
+		FirstName: in.FirstName,
+		LastName:  in.LastName,
+	}
+}
+
+func (in StudentLogin) ToModel() coursepass.StudentLogin {
+	return coursepass.StudentLogin{
+		Login:    in.Login,
+		Password: in.Password,
+	}
+}
+
+func newFieldError(fe coursepass.FieldError) FieldError {
+	var c *FieldErrorConstraint
+	if fe.Constraint != nil {
+		c = &FieldErrorConstraint{Max: fe.Constraint.Max, Min: fe.Constraint.Min}
+	}
+	return FieldError{Field: fe.Field, Error: fe.Error, Constraint: c}
+}
+
 func newToken(token *coursepass.AuthToken) *Token {
 	return &Token{
 		AccessToken: token.AccessToken,

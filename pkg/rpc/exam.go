@@ -2,8 +2,10 @@ package rpc
 
 import (
 	"context"
+	"errors"
 
 	"courses/pkg/coursepass"
+	"courses/pkg/coursepass/exam"
 	"courses/pkg/db"
 
 	"github.com/vmkteam/embedlog"
@@ -14,31 +16,36 @@ type ExamService struct {
 	zenrpc.Service
 	embedlog.Logger
 
-	examManager  *coursepass.ExamManager
+	examManager  *exam.Manager
 	mediaWebPath string
 }
 
 func NewExamService(dbc db.DB, logger embedlog.Logger, mediaWebPath string) *ExamService {
 	return &ExamService{
-		examManager:  coursepass.NewExamManager(dbc, logger, mediaWebPath),
+		examManager:  exam.NewManager(dbc, logger, mediaWebPath),
 		Logger:       logger,
 		mediaWebPath: mediaWebPath,
 	}
 }
 
 //zenrpc:401 invalid token
+//zenrpc:404 not found
+//zenrpc:409 exam conflict
+//zenrpc:500 internal error
 func (es *ExamService) Start(ctx context.Context, courseID int) (*ExamStart, error) {
-	if courseID < 1 {
-		return nil, newInvalidParamsError("courseID", "must be greater than 0")
-	}
-
 	studentID, ok := studentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
+	if !ok {
 		return nil, ErrInvalidToken
 	}
 
 	exam, err := es.examManager.Start(ctx, studentID, courseID)
 	if err != nil {
+		if errors.Is(err, coursepass.ErrCourseNotFound) {
+			return nil, ErrNotFound
+		}
+		if errors.Is(err, coursepass.ErrNoQuestions) || errors.Is(err, coursepass.ErrExamAlreadyStarted) {
+			return nil, ErrExamConflict
+		}
 		return nil, newInternalError(err)
 	}
 
@@ -46,21 +53,26 @@ func (es *ExamService) Start(ctx context.Context, courseID int) (*ExamStart, err
 }
 
 //zenrpc:401 invalid token
+//zenrpc:404 not found
+//zenrpc:409 exam conflict
+//zenrpc:500 internal error
 func (es *ExamService) GetQuestion(ctx context.Context, examID, questionID int) (*Question, error) {
-	if examID < 1 {
-		return nil, newInvalidParamsError("examId", "must be greater than 0")
-	}
-	if questionID < 1 {
-		return nil, newInvalidParamsError("questionId", "must be greater than 0")
-	}
-
 	studentID, ok := studentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
+	if !ok {
 		return nil, ErrInvalidToken
 	}
 
 	question, err := es.examManager.Question(ctx, studentID, questionID, examID)
 	if err != nil {
+		if errors.Is(err, coursepass.ErrExamNotFound) || errors.Is(err, coursepass.ErrQuestionNotFound) {
+			return nil, ErrNotFound
+		}
+		if errors.Is(err, coursepass.ErrExamNotInProgress) {
+			return nil, ErrExamConflict
+		}
+		if errors.Is(err, coursepass.ErrQuestionNotInExam) {
+			return nil, ErrInvalidParams
+		}
 		return nil, newInternalError(err)
 	}
 
@@ -68,24 +80,26 @@ func (es *ExamService) GetQuestion(ctx context.Context, examID, questionID int) 
 }
 
 //zenrpc:401 invalid token
+//zenrpc:404 not found
+//zenrpc:409 exam conflict
+//zenrpc:500 internal error
 func (es *ExamService) Answer(ctx context.Context, examID, questionID int, optionIDs []int) error {
-	if examID < 1 {
-		return newInvalidParamsError("examId", "must be greater than 0")
-	}
-	if questionID < 1 {
-		return newInvalidParamsError("questionId", "must be greater than 0")
-	}
-	if len(optionIDs) < 1 {
-		return newInvalidParamsError("optionIds", "size must be bigger than 0")
-	}
-
 	studentID, ok := studentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
+	if !ok {
 		return ErrInvalidToken
 	}
 
 	err := es.examManager.SaveAnswer(ctx, studentID, examID, questionID, optionIDs)
 	if err != nil {
+		if errors.Is(err, coursepass.ErrExamNotFound) {
+			return ErrNotFound
+		}
+		if errors.Is(err, coursepass.ErrAnswerUnavailable) {
+			return ErrExamConflict
+		}
+		if errors.Is(err, coursepass.ErrInvalidOptionIDs) {
+			return ErrInvalidParams
+		}
 		return newInternalError(err)
 	}
 
@@ -93,18 +107,23 @@ func (es *ExamService) Answer(ctx context.Context, examID, questionID int, optio
 }
 
 //zenrpc:401 invalid token
+//zenrpc:404 not found
+//zenrpc:409 exam conflict
+//zenrpc:500 internal error
 func (es *ExamService) Submit(ctx context.Context, examID int) (*ExamResult, error) {
-	if examID < 1 {
-		return nil, newInvalidParamsError("examId", "must be greater than 0")
-	}
-
 	studentID, ok := studentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
+	if !ok {
 		return nil, ErrInvalidToken
 	}
 
 	exam, err := es.examManager.Submit(ctx, studentID, examID)
 	if err != nil {
+		if errors.Is(err, coursepass.ErrExamNotFound) {
+			return nil, ErrNotFound
+		}
+		if errors.Is(err, coursepass.ErrExamNotInProgress) || errors.Is(err, coursepass.ErrNoQuestions) {
+			return nil, ErrExamConflict
+		}
 		return nil, newInternalError(err)
 	}
 
@@ -112,16 +131,10 @@ func (es *ExamService) Submit(ctx context.Context, examID int) (*ExamResult, err
 }
 
 //zenrpc:401 invalid token
+//zenrpc:500 internal error
 func (es *ExamService) History(ctx context.Context, page, pageSize int) ([]ExamSummary, error) {
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
-
 	studentID, ok := studentIDFromContext(ctx)
-	if !ok || studentID <= 0 {
+	if !ok {
 		return nil, ErrInvalidToken
 	}
 

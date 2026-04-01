@@ -15,8 +15,12 @@ var (
 	ErrInternal       = zenrpc.NewStringError(http.StatusInternalServerError, "internal error")
 	ErrNotFound       = zenrpc.NewStringError(http.StatusNotFound, "not found")
 
-	ErrInvalidParams = zenrpc.NewStringError(zenrpc.InvalidParams, "invalid params")
-	ErrInvalidToken  = zenrpc.NewStringError(http.StatusUnauthorized, "invalid token")
+	ErrInvalidParams      = zenrpc.NewStringError(zenrpc.InvalidParams, "invalid params")
+	ErrInvalidToken       = zenrpc.NewStringError(http.StatusUnauthorized, "invalid token")
+	ErrInvalidCredentials = zenrpc.NewStringError(http.StatusUnauthorized, "invalid credentials")
+	ErrLoginExists        = zenrpc.NewStringError(http.StatusConflict, "login exists")
+	ErrEmailExists        = zenrpc.NewStringError(http.StatusConflict, "email exists")
+	ErrExamConflict       = zenrpc.NewStringError(http.StatusConflict, "exam conflict")
 )
 
 const (

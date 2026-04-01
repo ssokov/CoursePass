@@ -1,8 +1,15 @@
-package coursepass
+package auth
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
+	"strconv"
+	"strings"
 	"testing"
 
+	"courses/pkg/coursepass"
 	"courses/pkg/db"
 	dbtest "courses/pkg/db/test"
 
@@ -13,7 +20,7 @@ import (
 
 type authFixture struct {
 	dbo           db.DB
-	manager       *AuthManager
+	manager       *Manager
 	repo          db.CoursesRepo
 	jwtSecret     string
 	jwtTTLSeconds int
@@ -28,7 +35,7 @@ func newAuthFixture(t *testing.T) authFixture {
 
 	return authFixture{
 		dbo:           dbo,
-		manager:       NewAuthManager(dbo, logger, jwtSecret, jwtTTLSeconds),
+		manager:       NewManager(dbo, logger, jwtSecret, jwtTTLSeconds),
 		repo:          db.NewCoursesRepo(dbo),
 		jwtSecret:     jwtSecret,
 		jwtTTLSeconds: jwtTTLSeconds,
@@ -69,6 +76,34 @@ func createStudent(t *testing.T, dbo db.DB, login, email, passwordHash string) (
 	return student, cleanup
 }
 
+func validateJWT(t *testing.T, secret, token string) int {
+	t.Helper()
+
+	parts := strings.Split(token, ".")
+	require.Len(t, parts, 3)
+
+	unsigned := parts[0] + "." + parts[1]
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, err := mac.Write([]byte(unsigned))
+	require.NoError(t, err)
+
+	expected := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	require.Equal(t, expected, parts[2])
+
+	payloadRaw, err := base64.RawURLEncoding.DecodeString(parts[1])
+	require.NoError(t, err)
+
+	var claims struct {
+		Sub string `json:"sub"`
+	}
+	require.NoError(t, json.Unmarshal(payloadRaw, &claims))
+
+	studentID, err := strconv.Atoi(claims.Sub)
+	require.NoError(t, err)
+
+	return studentID
+}
+
 func TestAuthManager_Register_Success(t *testing.T) {
 	// Arrange
 	fx := newAuthFixture(t)
@@ -77,13 +112,15 @@ func TestAuthManager_Register_Success(t *testing.T) {
 	email := "student_" + dbtest.NextStringID() + "@mail.test"
 
 	// Act
-	token, err := fx.manager.Register(
+	token, err := fx.manager.RegisterStudent(
 		t.Context(),
-		login,
-		"password123",
-		email,
-		"John",
-		"Doe",
+		coursepass.StudentDraft{
+			Login:     login,
+			Password:  "password123",
+			Email:     email,
+			FirstName: "John",
+			LastName:  "Doe",
+		},
 	)
 
 	// Assert
@@ -92,8 +129,7 @@ func TestAuthManager_Register_Success(t *testing.T) {
 	assert.Equal(t, fx.jwtTTLSeconds, token.ExpiresIn)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(fx.jwtSecret, token.AccessToken)
-	require.NoError(t, err)
+	studentID := validateJWT(t, fx.jwtSecret, token.AccessToken)
 	assert.Positive(t, studentID)
 
 	student, err := fx.repo.OneStudent(t.Context(), &db.StudentSearch{ID: &studentID})
@@ -122,18 +158,20 @@ func TestAuthManager_Register_DuplicateLogin(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	_, err := fx.manager.Register(
+	_, err := fx.manager.RegisterStudent(
 		t.Context(),
-		existingLogin,
-		"password123",
-		"student_"+dbtest.NextStringID()+"@mail.test",
-		"John",
-		"Doe",
+		coursepass.StudentDraft{
+			Login:     existingLogin,
+			Password:  "password123",
+			Email:     "student_" + dbtest.NextStringID() + "@mail.test",
+			FirstName: "John",
+			LastName:  "Doe",
+		},
 	)
 
 	// Assert
 	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrLoginExists)
+	assert.ErrorIs(t, err, coursepass.ErrLoginExists)
 }
 
 func TestAuthManager_Register_DuplicateEmail(t *testing.T) {
@@ -153,18 +191,20 @@ func TestAuthManager_Register_DuplicateEmail(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	_, err := fx.manager.Register(
+	_, err := fx.manager.RegisterStudent(
 		t.Context(),
-		"student_"+dbtest.NextStringID(),
-		"password123",
-		existingEmail,
-		"John",
-		"Doe",
+		coursepass.StudentDraft{
+			Login:     "student_" + dbtest.NextStringID(),
+			Password:  "password123",
+			Email:     existingEmail,
+			FirstName: "John",
+			LastName:  "Doe",
+		},
 	)
 
 	// Assert
 	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrEmailExists)
+	assert.ErrorIs(t, err, coursepass.ErrEmailExists)
 }
 
 func TestAuthManager_Login_Success(t *testing.T) {
@@ -184,15 +224,17 @@ func TestAuthManager_Login_Success(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	token, err := fx.manager.Login(t.Context(), student.Login, rawPassword)
+	token, err := fx.manager.Login(t.Context(), coursepass.StudentLogin{
+		Login:    student.Login,
+		Password: rawPassword,
+	})
 
 	// Assert
 	require.NoError(t, err)
 	assert.NotEmpty(t, token.AccessToken)
 	assert.Equal(t, "Bearer", token.TokenType)
 
-	studentID, err := ValidateJWT(fx.jwtSecret, token.AccessToken)
-	require.NoError(t, err)
+	studentID := validateJWT(t, fx.jwtSecret, token.AccessToken)
 	assert.Equal(t, student.ID, studentID)
 }
 
@@ -213,9 +255,12 @@ func TestAuthManager_Login_InvalidCredentials(t *testing.T) {
 	defer cleanup()
 
 	// Act
-	_, err := fx.manager.Login(t.Context(), student.Login, "wrong-password")
+	_, err := fx.manager.Login(t.Context(), coursepass.StudentLogin{
+		Login:    student.Login,
+		Password: "wrong-password",
+	})
 
 	// Assert
 	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrInvalidCredentials)
+	assert.ErrorIs(t, err, coursepass.ErrInvalidCredentials)
 }

@@ -4,6 +4,7 @@ package rpc
 //colgen:CourseSummary:map(coursepass.Course)
 //colgen:ExamSummary:map(coursepass.Exam)
 //colgen:QuestionOption:Map(coursepass.QuestionOption)
+//colgen:FieldError:map(coursepass.FieldError)
 
 func Map[S, T any](in []S, convert func(S) T) []T {
 	out := make([]T, len(in))
