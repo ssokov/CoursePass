@@ -59,6 +59,7 @@
                         <correctAnswersLabel>Правильных ответов</correctAnswersLabel>
                         <statusLabel>Статус</statusLabel>
                         <finalScoreLabel>Итоговый балл</finalScoreLabel>
+                        <answersLabel>Ответы</answersLabel>
                         <finishedAtLabel>Завершен</finishedAtLabel>
                         <questionIdsLabel>Вопросы экзамена</questionIdsLabel>
                     </Form>
@@ -99,6 +100,7 @@
                         <courseIdLabel>Курс</courseIdLabel>
                         <photoFileIdLabel>Файл изображения</photoFileIdLabel>
                         <questionTextLabel>Текст вопроса</questionTextLabel>
+                        <optionsLabel>Варианты ответов</optionsLabel>
                         <questionTypeLabel>Тип вопроса</questionTypeLabel>
                     </Form>
                     <List>

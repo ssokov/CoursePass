@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bg font-body text-ink;
+  }
+
+  h1, h2, h3, h4, h5 {
+    @apply font-heading;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply rounded-btn px-4 py-2.5 font-bold text-sm cursor-pointer transition-opacity;
+  }
+
+  .btn-main {
+    @apply btn bg-brand text-white hover:opacity-90;
+  }
+
+  .btn-ghost {
+    @apply btn bg-white text-ink border border-line hover:bg-gray-50;
+  }
+
+  .panel {
+    @apply bg-panel border border-line rounded-panel p-4 shadow-panel;
+  }
+
+  .status-ok {
+    @apply inline-block px-2 py-0.5 rounded-full text-xs font-semibold text-ok bg-ok-bg;
+  }
+
+  .status-bad {
+    @apply inline-block px-2 py-0.5 rounded-full text-xs font-semibold text-bad bg-bad-bg;
+  }
+}

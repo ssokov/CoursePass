@@ -58,7 +58,7 @@ run:
 generate:
 	@go generate ./pkg/coursepass
 	@go generate ./pkg/rpc
-	@#go generate ./pkg/vt
+	@go generate ./pkg/vt
 
 test:
 	@echo "Running tests"

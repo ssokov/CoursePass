@@ -42,6 +42,7 @@ func NewManager(dbo db.DB, logger embedlog.Logger, _ string) *Manager {
 func (em *Manager) Start(ctx context.Context, studentID, courseID int) (*coursepass.Exam, error) {
 	var exam *coursepass.Exam
 
+	// TODO: lock: studentID + courseID
 	err := em.db.RunInTransaction(ctx, func(tx *pg.Tx) error {
 		txRepo := em.repo.WithTransaction(tx)
 

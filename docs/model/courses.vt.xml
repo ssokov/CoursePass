@@ -82,6 +82,7 @@
                 <Attribute Name="CorrectAnswers" VTAttrName="CorrectAnswers" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
                 <Attribute Name="Status" VTAttrName="Status" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
                 <Attribute Name="FinalScore" VTAttrName="FinalScore" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
+                <Attribute Name="Answers" VTAttrName="Answers" List="false" Form="HTML_JSON" Search="HTML_NONE"></Attribute>
                 <Attribute Name="FinishedAt" VTAttrName="FinishedAt" List="true" Form="HTML_DATETIME" Search="HTML_DATETIME"></Attribute>
                 <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
                 <Attribute Name="QuestionIDs" VTAttrName="QuestionIDs" List="false" FKOpts="id" Form="HTML_SELECT" Search="HTML_NONE"></Attribute>
@@ -107,6 +108,7 @@
                 <Attribute Name="PhotoFileID" VTAttrName="PhotoFileID" List="false" FKOpts="title" Form="HTML_FILE" Search="HTML_FILE"></Attribute>
                 <Attribute Name="PhotoFile" VTAttrName="PhotoFileID" List="true" FKOpts="title" Form="" Search="HTML_NONE"></Attribute>
                 <Attribute Name="QuestionText" VTAttrName="QuestionText" List="true" Form="HTML_TEXT" Search="HTML_TEXT"></Attribute>
+                <Attribute Name="Options" VTAttrName="Options" List="false" Form="HTML_JSON" Search="HTML_NONE"></Attribute>
                 <Attribute Name="QuestionType" VTAttrName="QuestionType" List="true" Form="HTML_INPUT" Search="HTML_INPUT"></Attribute>
                 <Attribute Name="CreatedAt" VTAttrName="CreatedAt" List="false" Form="HTML_NONE" Search="HTML_DATETIME"></Attribute>
                 <Attribute Name="IDs" VTAttrName="IDs" List="false" Form="HTML_NONE" Search="HTML_SELECT"></Attribute>

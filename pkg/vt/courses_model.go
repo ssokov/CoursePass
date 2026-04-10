@@ -181,11 +181,22 @@ type ExamSummary struct {
 	Student *StudentSummary `json:"student"`
 }
 
-type ExamAnswers struct {
+type ExamAnswer struct {
+	QuestionID int   `json:"questionId"`
+	OptionIDs  []int `json:"optionIds"`
 }
 
-func (ea *ExamAnswers) ToDB() *db.ExamAnswers {
-	return &db.ExamAnswers{}
+type ExamAnswers []ExamAnswer
+
+func (ea ExamAnswers) ToDB() *db.ExamAnswers {
+	result := make(db.ExamAnswers, len(ea))
+	for i, a := range ea {
+		result[i] = db.ExamAnswer{
+			QuestionID: a.QuestionID,
+			OptionIDs:  a.OptionIDs,
+		}
+	}
+	return &result
 }
 
 type Question struct {
@@ -260,11 +271,26 @@ type QuestionSummary struct {
 	PhotoFile *VfsFileSummary `json:"photoFile"`
 }
 
-type QuestionOptions struct {
+type QuestionOption struct {
+	OptionID    int    `json:"optionId"`
+	OptionText  string `json:"optionText"`
+	IsCorrect   bool   `json:"isCorrect,omitempty"`
+	DisplaySort int    `json:"displaySort,omitempty"`
 }
 
-func (qo *QuestionOptions) ToDB() *db.QuestionOptions {
-	return &db.QuestionOptions{}
+type QuestionOptions []QuestionOption
+
+func (qo QuestionOptions) ToDB() *db.QuestionOptions {
+	result := make(db.QuestionOptions, len(qo))
+	for i, o := range qo {
+		result[i] = db.QuestionOption{
+			OptionID:    o.OptionID,
+			OptionText:  o.OptionText,
+			IsCorrect:   o.IsCorrect,
+			DisplaySort: o.DisplaySort,
+		}
+	}
+	return &result
 }
 
 type Student struct {

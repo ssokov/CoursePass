@@ -11,6 +11,8 @@ import (
 type processor struct {
 	exam      coursepass.Exam
 	questions []coursepass.Question
+
+	// ExamManager
 }
 
 func newExamProcessor(exam coursepass.Exam, questions []coursepass.Question) *processor {

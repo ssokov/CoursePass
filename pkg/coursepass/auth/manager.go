@@ -75,6 +75,7 @@ func (am *Manager) RegisterStudent(ctx context.Context, draft coursepass.Student
 			return err
 		}
 
+		// TODO: передавать draft в addStudent
 		student, addErr := am.addStudent(ctx, txRepo, draft.Login, hash, draft.FirstName, draft.LastName, draft.Email)
 		if addErr != nil {
 			return addErr
@@ -122,13 +123,10 @@ func (am *Manager) isUniqueConstraintViolation(err error, constraintName string)
 }
 
 func (am *Manager) ensureLoginAvailable(ctx context.Context, repo db.CoursesRepo, login string) error {
-	studentData, err := repo.OneStudent(ctx, &db.StudentSearch{
-		Login: &login,
-	})
+	studentData, err := repo.OneStudent(ctx, &db.StudentSearch{Login: &login})
 	if err != nil {
 		return fmt.Errorf("failed check login: %w", err)
-	}
-	if studentData != nil {
+	} else if studentData != nil {
 		return coursepass.ErrLoginExists
 	}
 

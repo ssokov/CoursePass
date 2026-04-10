@@ -41,7 +41,7 @@ func (AuthService) SMD() smd.ServiceInfo {
 			"ValidateStudent": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name:     "in",
+						Name:     "studentDraft",
 						Type:     smd.Object,
 						TypeName: "StudentDraft",
 						Properties: smd.PropertyList{
@@ -116,7 +116,7 @@ func (AuthService) SMD() smd.ServiceInfo {
 			"RegisterStudent": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name:     "in",
+						Name:     "studentDraft",
 						Type:     smd.Object,
 						TypeName: "StudentDraft",
 						Properties: smd.PropertyList{
@@ -170,7 +170,7 @@ func (AuthService) SMD() smd.ServiceInfo {
 			"ValidateStudentLogin": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name:     "in",
+						Name:     "studentLogin",
 						Type:     smd.Object,
 						TypeName: "StudentLogin",
 						Properties: smd.PropertyList{
@@ -233,7 +233,7 @@ func (AuthService) SMD() smd.ServiceInfo {
 			"Login": {
 				Parameters: []smd.JSONSchema{
 					{
-						Name:     "in",
+						Name:     "studentLogin",
 						Type:     smd.Object,
 						TypeName: "StudentLogin",
 						Properties: smd.PropertyList{
@@ -284,11 +284,11 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 	switch method {
 	case RPC.AuthService.ValidateStudent:
 		var args = struct {
-			In StudentDraft `json:"in"`
+			StudentDraft StudentDraft `json:"studentDraft"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"studentDraft"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -299,15 +299,15 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.ValidateStudent(ctx, args.In))
+		resp.Set(s.ValidateStudent(ctx, args.StudentDraft))
 
 	case RPC.AuthService.RegisterStudent:
 		var args = struct {
-			In StudentDraft `json:"in"`
+			StudentDraft StudentDraft `json:"studentDraft"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"studentDraft"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -318,15 +318,15 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.RegisterStudent(ctx, args.In))
+		resp.Set(s.RegisterStudent(ctx, args.StudentDraft))
 
 	case RPC.AuthService.ValidateStudentLogin:
 		var args = struct {
-			In StudentLogin `json:"in"`
+			StudentLogin StudentLogin `json:"studentLogin"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"studentLogin"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -337,15 +337,15 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.ValidateStudentLogin(ctx, args.In))
+		resp.Set(s.ValidateStudentLogin(ctx, args.StudentLogin))
 
 	case RPC.AuthService.Login:
 		var args = struct {
-			In StudentLogin `json:"in"`
+			StudentLogin StudentLogin `json:"studentLogin"`
 		}{}
 
 		if zenrpc.IsArray(params) {
-			if params, err = zenrpc.ConvertToObject([]string{"in"}, params); err != nil {
+			if params, err = zenrpc.ConvertToObject([]string{"studentLogin"}, params); err != nil {
 				return zenrpc.NewResponseError(nil, zenrpc.InvalidParams, "", err.Error())
 			}
 		}
@@ -356,7 +356,7 @@ func (s AuthService) Invoke(ctx context.Context, method string, params json.RawM
 			}
 		}
 
-		resp.Set(s.Login(ctx, args.In))
+		resp.Set(s.Login(ctx, args.StudentLogin))
 
 	default:
 		resp = zenrpc.NewResponseError(nil, zenrpc.MethodNotFound, "", nil)

@@ -1365,8 +1365,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 						},
 						{
 							Name: "answers",
-							Ref:  "#/definitions/ExamAnswers",
-							Type: smd.Object,
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/ExamAnswer",
+							},
 						},
 						{
 							Name:     "totalQuestions",
@@ -1417,9 +1419,21 @@ func (ExamService) SMD() smd.ServiceInfo {
 						},
 					},
 					Definitions: map[string]smd.Definition{
-						"ExamAnswers": {
-							Type:       "object",
-							Properties: smd.PropertyList{},
+						"ExamAnswer": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "questionId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "optionIds",
+									Type: smd.Array,
+									Items: map[string]string{
+										"type": smd.Integer,
+									},
+								},
+							},
 						},
 						"CourseSummary": {
 							Type: "object",
@@ -1553,8 +1567,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "answers",
-								Ref:  "#/definitions/ExamAnswers",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/ExamAnswer",
+								},
 							},
 							{
 								Name:     "totalQuestions",
@@ -1605,9 +1621,21 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"ExamAnswers": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"ExamAnswer": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "questionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionIds",
+										Type: smd.Array,
+										Items: map[string]string{
+											"type": smd.Integer,
+										},
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",
@@ -1734,8 +1762,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 						},
 						{
 							Name: "answers",
-							Ref:  "#/definitions/ExamAnswers",
-							Type: smd.Object,
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/ExamAnswer",
+							},
 						},
 						{
 							Name:     "totalQuestions",
@@ -1786,9 +1816,21 @@ func (ExamService) SMD() smd.ServiceInfo {
 						},
 					},
 					Definitions: map[string]smd.Definition{
-						"ExamAnswers": {
-							Type:       "object",
-							Properties: smd.PropertyList{},
+						"ExamAnswer": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "questionId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "optionIds",
+									Type: smd.Array,
+									Items: map[string]string{
+										"type": smd.Integer,
+									},
+								},
+							},
 						},
 						"CourseSummary": {
 							Type: "object",
@@ -1921,8 +1963,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "answers",
-								Ref:  "#/definitions/ExamAnswers",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/ExamAnswer",
+								},
 							},
 							{
 								Name:     "totalQuestions",
@@ -1973,9 +2017,21 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"ExamAnswers": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"ExamAnswer": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "questionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionIds",
+										Type: smd.Array,
+										Items: map[string]string{
+											"type": smd.Integer,
+										},
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",
@@ -2135,8 +2191,10 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "answers",
-								Ref:  "#/definitions/ExamAnswers",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/ExamAnswer",
+								},
 							},
 							{
 								Name:     "totalQuestions",
@@ -2187,9 +2245,21 @@ func (ExamService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"ExamAnswers": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"ExamAnswer": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "questionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionIds",
+										Type: smd.Array,
+										Items: map[string]string{
+											"type": smd.Integer,
+										},
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",
@@ -2888,8 +2958,10 @@ func (QuestionService) SMD() smd.ServiceInfo {
 						},
 						{
 							Name: "options",
-							Ref:  "#/definitions/QuestionOptions",
-							Type: smd.Object,
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/QuestionOption",
+							},
 						},
 						{
 							Name: "questionType",
@@ -2913,9 +2985,26 @@ func (QuestionService) SMD() smd.ServiceInfo {
 						},
 					},
 					Definitions: map[string]smd.Definition{
-						"QuestionOptions": {
-							Type:       "object",
-							Properties: smd.PropertyList{},
+						"QuestionOption": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "optionId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "optionText",
+									Type: smd.String,
+								},
+								{
+									Name: "isCorrect",
+									Type: smd.Boolean,
+								},
+								{
+									Name: "displaySort",
+									Type: smd.Integer,
+								},
+							},
 						},
 						"CourseSummary": {
 							Type: "object",
@@ -3114,8 +3203,10 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "options",
-								Ref:  "#/definitions/QuestionOptions",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/QuestionOption",
+								},
 							},
 							{
 								Name: "questionType",
@@ -3139,9 +3230,26 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"QuestionOptions": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"QuestionOption": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "optionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionText",
+										Type: smd.String,
+									},
+									{
+										Name: "isCorrect",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "displaySort",
+										Type: smd.Integer,
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",
@@ -3333,8 +3441,10 @@ func (QuestionService) SMD() smd.ServiceInfo {
 						},
 						{
 							Name: "options",
-							Ref:  "#/definitions/QuestionOptions",
-							Type: smd.Object,
+							Type: smd.Array,
+							Items: map[string]string{
+								"$ref": "#/definitions/QuestionOption",
+							},
 						},
 						{
 							Name: "questionType",
@@ -3358,9 +3468,26 @@ func (QuestionService) SMD() smd.ServiceInfo {
 						},
 					},
 					Definitions: map[string]smd.Definition{
-						"QuestionOptions": {
-							Type:       "object",
-							Properties: smd.PropertyList{},
+						"QuestionOption": {
+							Type: "object",
+							Properties: smd.PropertyList{
+								{
+									Name: "optionId",
+									Type: smd.Integer,
+								},
+								{
+									Name: "optionText",
+									Type: smd.String,
+								},
+								{
+									Name: "isCorrect",
+									Type: smd.Boolean,
+								},
+								{
+									Name: "displaySort",
+									Type: smd.Integer,
+								},
+							},
 						},
 						"CourseSummary": {
 							Type: "object",
@@ -3558,8 +3685,10 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "options",
-								Ref:  "#/definitions/QuestionOptions",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/QuestionOption",
+								},
 							},
 							{
 								Name: "questionType",
@@ -3583,9 +3712,26 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"QuestionOptions": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"QuestionOption": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "optionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionText",
+										Type: smd.String,
+									},
+									{
+										Name: "isCorrect",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "displaySort",
+										Type: smd.Integer,
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",
@@ -3810,8 +3956,10 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 							{
 								Name: "options",
-								Ref:  "#/definitions/QuestionOptions",
-								Type: smd.Object,
+								Type: smd.Array,
+								Items: map[string]string{
+									"$ref": "#/definitions/QuestionOption",
+								},
 							},
 							{
 								Name: "questionType",
@@ -3835,9 +3983,26 @@ func (QuestionService) SMD() smd.ServiceInfo {
 							},
 						},
 						Definitions: map[string]smd.Definition{
-							"QuestionOptions": {
-								Type:       "object",
-								Properties: smd.PropertyList{},
+							"QuestionOption": {
+								Type: "object",
+								Properties: smd.PropertyList{
+									{
+										Name: "optionId",
+										Type: smd.Integer,
+									},
+									{
+										Name: "optionText",
+										Type: smd.String,
+									},
+									{
+										Name: "isCorrect",
+										Type: smd.Boolean,
+									},
+									{
+										Name: "displaySort",
+										Type: smd.Integer,
+									},
+								},
 							},
 							"CourseSummary": {
 								Type: "object",

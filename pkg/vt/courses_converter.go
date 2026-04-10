@@ -66,9 +66,7 @@ func NewExam(in *db.Exam) *Exam {
 		Student: NewStudentSummary(in.Student),
 	}
 
-	if examAnswers := NewExamAnswers(&in.Answers); examAnswers != nil {
-		exam.Answers = *examAnswers
-	}
+	exam.Answers = NewExamAnswers(&in.Answers)
 
 	return exam
 }
@@ -94,8 +92,18 @@ func NewExamSummary(in *db.Exam) *ExamSummary {
 	}
 }
 
-func NewExamAnswers(in *db.ExamAnswers) *ExamAnswers {
-	return &ExamAnswers{}
+func NewExamAnswers(in *db.ExamAnswers) ExamAnswers {
+	if in == nil {
+		return nil
+	}
+	result := make(ExamAnswers, len(*in))
+	for i, a := range *in {
+		result[i] = ExamAnswer{
+			QuestionID: a.QuestionID,
+			OptionIDs:  a.OptionIDs,
+		}
+	}
+	return result
 }
 
 func NewQuestion(in *db.Question) *Question {
@@ -115,9 +123,7 @@ func NewQuestion(in *db.Question) *Question {
 		PhotoFile: NewVfsFileSummary(in.PhotoFile),
 	}
 
-	if questionOptions := NewQuestionOptions(&in.Options); questionOptions != nil {
-		question.Options = *questionOptions
-	}
+	question.Options = NewQuestionOptions(&in.Options)
 
 	return question
 }
@@ -140,8 +146,20 @@ func NewQuestionSummary(in *db.Question) *QuestionSummary {
 	}
 }
 
-func NewQuestionOptions(in *db.QuestionOptions) *QuestionOptions {
-	return &QuestionOptions{}
+func NewQuestionOptions(in *db.QuestionOptions) QuestionOptions {
+	if in == nil {
+		return nil
+	}
+	result := make(QuestionOptions, len(*in))
+	for i, o := range *in {
+		result[i] = QuestionOption{
+			OptionID:    o.OptionID,
+			OptionText:  o.OptionText,
+			IsCorrect:   o.IsCorrect,
+			DisplaySort: o.DisplaySort,
+		}
+	}
+	return result
 }
 
 func NewStudent(in *db.Student) *Student {
